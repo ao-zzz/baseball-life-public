@@ -1,0 +1,251 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+h1,
+h2 {
+  font-family: var(--font-serif);
+  margin: 0;
+}
+
+h2 {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+h3 {
+  font-size: 17.55px;
+  font-weight: 700;
+  line-height: 1.6;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--teal);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--text-2);
+}
+
+.small {
+  font-size: 13px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.panel > h3 {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.panel > h3 .lbl {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-3);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 12px 18px;
+  min-height: 44px;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.btn:hover {
+  background: var(--surface-2);
+}
+
+.btn.primary {
+  background: var(--accent);
+  border: 0;
+  color: var(--on-accent);
+  font-weight: 600;
+}
+
+/* main action on the birth certificate and the result (measured: 18px/600, 16px 28px) */
+.btn.lg {
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  padding: 16px 28px;
+  min-height: 61px;
+}
+
+.btn.primary:hover {
+  filter: brightness(1.08);
+}
+
+.btn.cta {
+  font-size: 20px;
+  padding: 16px 52px;
+  min-height: 64px;
+}
+
+.btn.sm {
+  padding: 6px 12px;
+  min-height: 32px;
+  font-size: 13px;
+}
+
+.seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.seg button {
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: transparent;
+  color: var(--text-2);
+  font-size: 14px;
+  padding: 9px 14px;
+  min-height: 40px;
+  min-width: 98px;
+}
+
+.seg button:last-child {
+  border-right: 0;
+}
+
+.seg button[aria-pressed='true'] {
+  background: var(--text);
+  color: var(--bg);
+}
+
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  line-height: 1.5;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--text-2);
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+
+.badge.measured {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.badge.estimate {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.badge.assumption {
+  border-color: var(--text-3);
+  color: var(--text-3);
+  border-style: dashed;
+}
+
+.badge.recheck {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.badge.reference {
+  border-color: var(--text-3);
+  color: var(--text-2);
+}
+
+.badge.model {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.bar {
+  height: 10px;
+  background: var(--line-2);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.bar > i {
+  display: block;
+  height: 100%;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

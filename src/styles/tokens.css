@@ -1,0 +1,90 @@
+/* Design tokens.
+   Colour, type and size values reproduce the reference UI and were measured on 2026-10-17
+   (1in8b.life, computed styles; see PROJECT_PLAN §5.4). Names and structure are this project's own. */
+
+:root {
+  --bg: #ebf0ed;
+  --surface: #f7faf8;
+  --surface-2: #f0f4f2;
+  --text: #13212a;
+  --text-2: #4a5a61;
+  --text-3: #5f6e72;
+  --line: #c7d2ce;
+  --line-2: #dce4e1;
+  --accent: #8c1d3c;
+  --on-accent: #ffffff;
+  --accent-weak: #f3e3e8;
+  --teal: #0f6e68;
+  --teal-weak: #dcedea;
+  --gold: #9c7020;
+  --good: #2b7a4e;
+  --bad: #b0362b;
+  --warn: #a8730f;
+  --loss: #2c2f3a;
+  --map-lo: #e3e8e6;
+  --map-hi: #0f6e68;
+  --scrim: rgba(19, 33, 42, 0.45);
+  --shadow: 0 1px 0 rgba(19, 33, 42, 0.04), 0 8px 24px -12px rgba(19, 33, 42, 0.18);
+
+  --font-serif: 'Hiragino Mincho ProN', 'Yu Mincho', YuMincho, 'Noto Serif JP', 'Noto Serif CJK JP', serif;
+  --font-sans: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', YuGothic, 'Noto Sans JP', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --radius: 4px;
+  --radius-sm: 3px;
+  --gutter: 20px;
+  --col-left: 320px;
+  --col-right: 340px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0d1316;
+    --surface: #141d21;
+    --surface-2: #1a2428;
+    --text: #e1e9e6;
+    --text-2: #a3b2af;
+    --text-3: #8a9a96;
+    --line: #2a383d;
+    --line-2: #1d282c;
+    --accent: #e2678a;
+    --on-accent: #1b0910;
+    --accent-weak: #3a1c26;
+    --teal: #4cc0af;
+    --teal-weak: #12302d;
+    --gold: #d9af59;
+    --good: #5cc38b;
+    --bad: #f07b6b;
+    --warn: #e2b04c;
+    --loss: #c9cdd8;
+    --map-lo: #1b2629;
+    --map-hi: #4cc0af;
+    --scrim: rgba(0, 0, 0, 0.6);
+    --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 10px 30px -14px rgba(0, 0, 0, 0.6);
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #0d1316;
+  --surface: #141d21;
+  --surface-2: #1a2428;
+  --text: #e1e9e6;
+  --text-2: #a3b2af;
+  --text-3: #8a9a96;
+  --line: #2a383d;
+  --line-2: #1d282c;
+  --accent: #e2678a;
+  --on-accent: #1b0910;
+  --accent-weak: #3a1c26;
+  --teal: #4cc0af;
+  --teal-weak: #12302d;
+  --gold: #d9af59;
+  --good: #5cc38b;
+  --bad: #f07b6b;
+  --warn: #e2b04c;
+  --loss: #c9cdd8;
+  --map-lo: #1b2629;
+  --map-hi: #4cc0af;
+  --scrim: rgba(0, 0, 0, 0.6);
+  --shadow: 0 1px 0 rgba(0, 0, 0, 0.3), 0 10px 30px -14px rgba(0, 0, 0, 0.6);
+}

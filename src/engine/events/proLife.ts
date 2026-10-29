@@ -1,0 +1,572 @@
+import type { LifeState } from '../types.ts'
+import { hasFlag, type EventSpec } from './spec.ts'
+import { rotate } from '../events.ts'
+import { multiYearWeight } from '../contractTiming.ts'
+
+/** the number given at the new club after a trade (life.ts careerHooks.moveTeam draws it) */
+const numberWords = (s: LifeState) => (s.bb?.number !== undefined ? `新しい背番号は${s.bb.number}です。` : '')
+
+// Company and club teams, independent leagues and the pros (PROJECT_PLAN §11.13): work and practice,
+// the fight for a place, contracts and money, camps, the first and second teams, injuries and rehab,
+// transfers, and getting ready for the end. Each decision has choices with different effects, outcomes
+// that differ and follow-ups; the おまかせ path is neutral (spec.ts NEUTRAL_FORBIDDEN). No team name
+// appears in these texts. All texts are original.
+
+const X = { extra: true, career: true } as const
+const company = (s: LifeState) => s.career.phase === 'company' && !!s.bb
+const indep = (s: LifeState) => s.career.phase === 'indep' && !!s.bb
+const pro = (s: LifeState) => s.career.phase === 'pro' && !!s.bb
+const farm = (s: LifeState) => s.career.phase === 'proMinor' && !!s.bb
+const proAny = (s: LifeState) => pro(s) || farm(s)
+const role = (s: LifeState) => s.bb?.role
+const conf = (s: LifeState) => s.bb?.confidence ?? 100
+
+export const PRO_LIFE: EventSpec[] = [
+  // ---------------------------------------------------------------- company and club teams
+  {
+    ...X,
+    id: 'x.co.balance',
+    category: 'dualLife',
+    stages: ['amateur'],
+    when: (s) => company(s) && s.career.phaseYears <= 2,
+    weight: 8,
+    cooldown: 1,
+    maxPerLife: 3,
+    title: '仕事と練習の両立',
+    body: '会社の繁忙期と、大会に向けた追い込みの練習が重なりました。',
+    auto: 2,
+    choices: [
+      {
+        label: '仕事を優先して、練習は夜に絞る',
+        hint: '職場での評価は上がるが、練習量は減る',
+        effects: { sat: 4 },
+        outcomes: [
+          { weight: 3, text: '繁忙期を乗り切り、上司から任される仕事が増えました。', effects: { rel: 2, flag: 'co.workFirst' }, follow: [{ id: 'x.co.workPay', after: 1 }] },
+          { weight: 1, text: '仕事に追われ、練習に顔を出せない週が続きました。', effects: { gain: -0.02, eval: -2 } },
+        ],
+      },
+      {
+        label: '練習を優先して、仕事は最低限にする',
+        hint: '競技は伸びるが、職場の目が冷たくなることもある',
+        effects: { gain: 0.02, fatigue: 6 },
+        outcomes: [
+          { weight: 2, text: '追い込みの練習で、球に力が戻ってきました。', effects: { eval: 3 } },
+          { weight: 2, text: '「野球ばかりだ」と同僚に陰で言われ、職場に居づらくなりました。', effects: { sat: -5, rel: -3 } },
+        ],
+      },
+      {
+        label: '無理のない範囲で、両方を続ける',
+        outcomes: [{ text: (s) => rotate(s, 'x.co.balance', ['仕事も練習も、できる範囲で毎日こなしました。', '朝は書類、夜はノックという一日を、淡々と繰り返しました。', '残業の日は練習を軽くし、休みの日に取り戻す形で両立しました。']) }],
+      },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.co.workPay',
+    category: 'dualLife',
+    // (one of its lines speaks of the double life: it comes while he still plays for the company team)
+    stages: ['amateur'],
+    followOnly: true,
+    when: (s) => s.career.phase === 'company' && hasFlag(s, 'co.workFirst') && !!s.after?.work,
+    outcomes: [
+      { weight: 2, text: '丁寧に仕事を覚えた成果が認められ、主任の仕事を任されました。', effects: { level: 1, sat: 4 } },
+      { weight: 1, text: '仕事は評価されたものの、野球との両立の疲れが抜けません。', effects: { fatigue: 6, sat: 2 } },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.co.regular',
+    category: 'roleFight',
+    stages: ['amateur'],
+    when: (s) => company(s) && (role(s) === 'bench' || role(s) === 'outside'),
+    weight: 4,
+    cooldown: 2,
+    maxPerLife: 2,
+    title: '補強選手とのレギュラー争い',
+    body: '大会に向けて、同じポジションに他社からの補強選手が加わりました。',
+    auto: 2,
+    choices: [
+      {
+        label: '練習で意地を見せる',
+        flag: 'co.fought',
+        follow: [{ id: 'x.co.fightBack', after: 1, within: 3 }],
+        hint: '力は伸びるが、体に無理がかかる',
+        effects: { gain: 0.02, fatigue: 10 },
+        outcomes: [
+          { weight: 3, text: '早出の練習を続け、補強選手に負けない打撃を維持しました。', effects: { conf: 3 } },
+          { weight: 1, text: '無理がたたり、腰を痛めてしまいました。', effects: { injury: 1, health: -3, conf: -3 } },
+        ],
+      },
+      { label: '補強選手から技術を盗む', flag: 'co.learned', follow: [{ id: 'x.co.fightBack', after: 1, within: 3 }], effects: { rel: 2 }, outcomes: [{ text: 'ベテランの補強選手の配球の読み方を、隣で見て覚えました。', effects: { skill: { contact: 0.12 }, eval: 2 } }] },
+      { label: '控えとしてチームを支える', outcomes: [{ text: '出番がなくても、ブルペンとベンチで準備を欠かさずに過ごしました。' }] },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.co.moveTeam',
+    category: 'moveTeam',
+    stages: ['amateur'],
+    when: (s) => company(s) && s.age >= 23,
+    weight: 3,
+    cooldown: 3,
+    maxPerLife: 1,
+    title: '移籍の誘い',
+    body: '他のチームの監督から、うちでプレーしないかと声をかけられました。',
+    auto: 1,
+    choices: [
+      { label: '誘いを受けて移る', hint: '新しい環境で挑戦できるが、職場も人間関係も変わる', effects: { moveTeam: true, sat: -3, rel: -3, conf: 2 }, outcomes: [{ text: '仕事先と所属を変え、新しいチームの一員になりました。' }] },
+      { label: '今のチームに残る', outcomes: [{ text: '誘いは断り、今のチームで勝負を続けることにしました。' }] },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.co.eve',
+    category: 'tournament',
+    stages: ['amateur'],
+    when: (s) => company(s) && s.career.phaseYears >= 1,
+    weight: 6,
+    cooldown: 1,
+    maxPerLife: 3,
+    title: '予選の前夜',
+    body: '都市対抗の予選を翌日に控えた夜です。',
+    auto: 1,
+    choices: [
+      {
+        label: '相手の映像を夜まで見て研究する',
+        flag: 'co.analyst',
+        follow: [{ id: 'x.co.studyBack', after: 1, within: 3 }],
+        effects: { eval: 2, fatigue: 4 },
+        outcomes: [
+          { weight: 2, text: '映像で見つけた相手の癖を、翌日の打席で突くことができました。', effects: { conf: 3 } },
+          { weight: 1, text: '夜ふかしがたたり、翌日は頭がぼんやりしたままでした。', effects: { fatigue: 6, conf: -1 } },
+        ],
+      },
+      { label: 'いつもどおり早く寝る', outcomes: [{ text: '何も特別なことはせず、いつもの時間に眠りました。' }] },
+      { label: '仲間と食事をして気持ちを一つにする', hint: '結束が深まる', effects: { rel: 3, money: -3 }, outcomes: [{ text: '仲間と夕食を囲み、明日は全員で戦おうと声をかけ合いました。', effects: { conf: 2 } }] },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.co.retireTalk',
+    category: 'endCareer',
+    stages: ['amateur'],
+    when: (s) => company(s) && s.age >= 27,
+    weight: 3,
+    cooldown: 2,
+    maxPerLife: 2,
+    title: '現役の続け方',
+    body: '年齢を重ね、仕事での責任も大きくなってきました。野球とどう付き合っていくか、考える時期です。',
+    auto: 1,
+    choices: [
+      { label: '区切りをつけて、社業に専念する', hint: '仕事での評価は上がるが、現役は終わる', effects: { retire: true, sat: 5, level: 1 }, outcomes: [{ text: '長く続けた競技に区切りをつけ、仕事に専念することにしました。', kind: 'milestone', key: true }] },
+      { label: '現役を続ける', outcomes: [{ text: '今年も現役を続けることにして、練習の日程を会社と調整しました。' }] },
+    ],
+  },
+  // ---------------------------------------------------------------- independent leagues
+  {
+    ...X,
+    id: 'x.in.contract',
+    category: 'contract',
+    stages: ['amateur'],
+    when: indep,
+    weight: 4,
+    cooldown: 1,
+    maxPerLife: 3,
+    title: '契約の更改',
+    body: '来季の契約の話し合いです。提示された額は、生活ぎりぎりの水準でした。',
+    auto: 0,
+    choices: [
+      {
+        label: '提示どおりにサインする',
+        outcomes: [{ text: (s) => rotate(s, 'x.in.contract', ['提示された条件のまま、来季の契約書にサインしました。', '生活の不安を抱えつつも、来季も同じ条件で契約しました。', '球団の事務所で、短い説明を聞いて契約書に名前を書きました。']) }],
+      },
+      {
+        label: '増額を粘り強く交渉する',
+        flag: 'in.negotiated',
+        follow: [{ id: 'x.in.negotiateBack', after: 1, within: 3 }],
+        hint: 'うまくいけば少し増えるが、心証を悪くすることもある',
+        outcomes: [
+          { weight: 1, text: '球団が折れて、基本給が少しだけ上積みされました。', effects: { money: 30 } },
+          { weight: 2, text: '「他にも選手はいる」と突き放され、気持ちが沈みました。', effects: { conf: -3 } },
+        ],
+      },
+      { label: '冬のアルバイトを増やして生活を支える', flag: 'in.sideWork', follow: [{ id: 'x.in.negotiateBack', after: 1, within: 3 }], effects: { money: 40, fatigue: 6 }, outcomes: [{ text: '冬のあいだ、荷物の仕分けのアルバイトを増やしました。' }] },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.in.scoutDay',
+    category: 'scoutDay',
+    stages: ['amateur'],
+    when: (s) => indep(s) && (s.bb?.scout ?? 0) >= 20,
+    weight: 32,
+    cooldown: 1,
+    maxPerLife: 2,
+    title: 'スカウトが来る日',
+    body: '球団から、NPB のスカウトが試合を見に来ると伝えられました。',
+    auto: 1,
+    choices: [
+      {
+        label: 'いつも以上に力を入れる',
+        hint: '強い印象を残せるかもしれないが、力みやすい',
+        effects: { fatigue: 8 },
+        outcomes: [
+          { weight: 2, text: '力みすぎて、体が固くなってしまいました。', effects: { conf: -2 } },
+          { weight: 1, text: '会心のプレーが出て、スタンドのスカウトがメモを取る姿が見えました。', effects: { conf: 5, eval: 2, flag: 'in.noticed' }, follow: [{ id: 'x.in.noticedTalk', after: 1 }] },
+        ],
+      },
+      { label: '普段どおりに臨む', outcomes: [{ text: '特別なことはせず、いつもどおりのプレーを心がけました。' }] },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.in.noticedTalk',
+    category: 'scoutDay',
+    stages: ['amateur', 'pro'],
+    followOnly: true,
+    when: (s) => hasFlag(s, 'in.noticed'),
+    outcomes: [{ text: '球団の関係者から、あの試合の動きはよかったと、あらためて声をかけられました。', effects: { conf: 3 } }],
+  },
+  {
+    ...X,
+    id: 'x.in.moveTeam',
+    category: 'moveTeam',
+    stages: ['amateur'],
+    when: (s) => indep(s) && s.age >= 21,
+    weight: 12,
+    cooldown: 3,
+    maxPerLife: 1,
+    title: '別のリーグからの誘い',
+    body: '別の球団から、出場機会の多いチームで勝負しないかと誘われました。',
+    auto: 1,
+    choices: [
+      { label: '誘いを受けて移る', hint: '出番は増えるかもしれないが、慣れた環境を離れる', effects: { moveTeam: true, rel: -2, conf: 2 }, outcomes: [{ text: '荷物をまとめて、新しい球団の寮に入りました。' }] },
+      { label: 'いまの球団に残る', outcomes: [{ text: '誘いはありがたく断り、いまの球団で続けることにしました。' }] },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.in.prepare',
+    category: 'secondCareer',
+    stages: ['amateur'],
+    when: (s) => indep(s) && !hasFlag(s, 'in.prep'),
+    weight: 16,
+    maxPerLife: 1,
+    title: '野球のあとの準備',
+    body: '同期の何人かが、就職活動や資格の勉強を始めたと聞きました。',
+    auto: 1,
+    choices: [
+      { label: '地元の企業を回って話を聞く', effects: { know: 2, rel: 2, fatigue: 4 }, outcomes: [{ text: '休みの日に地元の企業を訪ね、働き方の話を聞かせてもらいました。', effects: { flag: 'in.prep' } }] },
+      { label: '野球だけに集中する', outcomes: [{ text: '先のことは考えず、残りのシーズンに集中することにしました。' }] },
+    ],
+  },
+  // ---------------------------------------------------------------- pro
+  {
+    ...X,
+    id: 'x.pro.camp',
+    category: 'camp',
+    stages: ['pro'],
+    when: proAny,
+    weight: 4,
+    cooldown: 1,
+    maxPerLife: 6,
+    title: '春季キャンプの課題',
+    body: '春のキャンプが始まりました。首脳陣から、今季の課題を問われました。',
+    auto: 3,
+    choices: [
+      {
+        label: 'フォームの改造に挑戦する',
+        flag: 'pro.campForm',
+        follow: [{ id: 'x.pro.campBack', after: 1, within: 3 }],
+        hint: '実れば大きいが、感覚を失うおそれもある',
+        effects: { gain: 0.03, fatigue: 10 },
+        outcomes: [
+          { weight: 2, text: 'コーチと組み直した新しいフォームが、実戦でも機能し始めました。', effects: { conf: 4, skill: { contact: 0.1 } } },
+          { weight: 1, text: '改造が合わず、これまでの感覚を失ってしまいました。', effects: { conf: -4, gain: -0.02 } },
+        ],
+      },
+      { label: '体づくりを最優先にする', flag: 'pro.campBody', follow: [{ id: 'x.pro.campBack', after: 1, within: 3 }], effects: { fatigue: 8 }, outcomes: [{ text: '走り込みとウエイトで、一年戦える体を作ることに集中しました。', effects: { skill: { stamina: 0.12 } } }] },
+      { label: '首脳陣へのアピールを最優先にする', flag: 'pro.campApp', follow: [{ id: 'x.pro.campBack', after: 1, within: 3 }], effects: { eval: 3, fatigue: 6 }, outcomes: [{ text: '紅白戦の一打席一打席に全力を注ぎ、首脳陣の視線を意識しました。' }] },
+      {
+        label: '例年どおりのメニューをこなす',
+        outcomes: [{ text: (s) => rotate(s, 'x.pro.camp', ['大きな変更はせず、例年どおりのメニューでキャンプを終えました。', '新しいことは試さず、基本の反復でキャンプの日々が過ぎました。', 'ブルペンとグラウンドを往復する、いつもどおりのキャンプでした。']) }],
+      },
+    ],
+  },
+  // ---------------------------------------------------------------- a senior teaches (PROJECT_PLAN §11.65)
+  // During the season a senior of the team offers to teach him; what can be learned depends on his position (a pitcher learns
+  // pitching, a fielder hitting or fielding; the body and the mind for both). The growth is small and real: this year's growth
+  // (gain) and the skills of the lesson. Up to three times in a career, every other year at most, while he is still young in the pros.
+  {
+    ...X,
+    id: 'x.pro.senior',
+    category: 'proMentor',
+    stages: ['pro'],
+    ages: [18, 31],
+    when: proAny,
+    weight: 3,
+    cooldown: 2,
+    maxPerLife: 3,
+    title: '先輩からの声',
+    body: (s) => (s.person.position === 'P' ? '練習のあと、チームの先輩投手から「少し見てやろうか」と声をかけられました。' : '練習のあと、チームの先輩から「少し見てやろうか」と声をかけられました。'),
+    auto: 5,
+    choices: [
+      {
+        label: '投球フォームと変化球の握りを教わる',
+        hint: '球の質が上がる（制球と変化球が伸び、今年の成長が増える）',
+        when: (s) => s.person.position === 'P',
+        flag: 'senior.pitch',
+        follow: [{ id: 'x.pro.seniorBack', after: 1, within: 3 }],
+        effects: { gain: 0.04, skill: { control: 0.12, breaking: 0.1 }, fatigue: 4 },
+        outcomes: [{ text: '先輩の隣のブルペンで、体重の乗せ方と握りの微妙な違いを、何度も繰り返して教わりました。' }],
+      },
+      {
+        label: '打撃のコツを教わる',
+        hint: 'ミートと長打が伸び、今年の成長が増える',
+        when: (s) => s.person.position !== 'P',
+        flag: 'senior.bat',
+        follow: [{ id: 'x.pro.seniorBack', after: 1, within: 3 }],
+        effects: { gain: 0.04, skill: { contact: 0.12, power: 0.08 }, fatigue: 4 },
+        outcomes: [{ text: '試合後の室内練習場で、先輩にトップの位置とボールの待ち方を見てもらいました。' }],
+      },
+      {
+        label: '捕球と配球の考え方を教わる',
+        hint: 'キャッチングとリードが伸び、今年の成長が増える',
+        when: (s) => s.person.position === 'C',
+        flag: 'senior.field',
+        follow: [{ id: 'x.pro.seniorBack', after: 1, within: 3 }],
+        effects: { gain: 0.03, skill: { catching: 0.1, calling: 0.1 }, fatigue: 4 },
+        outcomes: [{ text: 'ベテラン捕手のブルペンでの構え方と、打者ごとの配球のメモを見せてもらいました。' }],
+      },
+      {
+        label: '守備と走塁の動きを教わる',
+        hint: '守備と走力が伸び、今年の成長が増える',
+        when: (s) => s.person.position === 'IF' || s.person.position === 'OF',
+        flag: 'senior.field',
+        follow: [{ id: 'x.pro.seniorBack', after: 1, within: 3 }],
+        effects: { gain: 0.03, skill: { fielding: 0.12, speed: 0.06, arm: 0.04 }, fatigue: 4 },
+        outcomes: [{ text: '早出の特守に付き合ってもらい、一歩目の出し方と送球の握り替えを教わりました。' }],
+      },
+      {
+        label: 'プロとしての体づくりと心構えを教わる',
+        hint: '自信がつき、疲れにくくなる（今年の成長が少し増える）',
+        flag: 'senior.body',
+        follow: [{ id: 'x.pro.seniorBack', after: 1, within: 3 }],
+        // (no skill of one position: the body and the mind are for pitchers and fielders alike)
+        effects: { gain: 0.02, conf: 3, fatigue: -2 },
+        outcomes: [{ text: '食事の取り方、休み方、調子の悪い日の過ごし方まで、先輩は惜しみなく話してくれました。' }],
+      },
+      { label: 'お礼を言って、自分のやり方を続ける', outcomes: [{ text: '気持ちはうれしかったものの、今は自分の形を固めることにしました。' }] },
+    ],
+  },
+  {
+    ...X,
+    followOnly: true,
+    id: 'x.pro.seniorBack',
+    category: 'proMentor',
+    stages: ['pro'],
+    when: (s) => proAny(s) && (hasFlag(s, 'senior.pitch') || hasFlag(s, 'senior.bat') || hasFlag(s, 'senior.field') || hasFlag(s, 'senior.body')),
+    outcomes: [
+      { weight: 2, text: '先輩に教わったことが、ようやく自分のものになってきました。試合で同じ場面が来ても、慌てなくなりました。', effects: { gain: 0.02, conf: 3 } },
+      { weight: 1, text: '教わったことを形にするには、まだ時間がかかりそうです。それでも、練習の質は確かに変わりました。', effects: { conf: 1 } },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.pro.farmLife',
+    category: 'farmLife',
+    stages: ['pro'],
+    when: (s) => farm(s) || (pro(s) && role(s) === 'outside'),
+    weight: 4,
+    cooldown: 1,
+    maxPerLife: 4,
+    title: '2軍の毎日',
+    body: '朝の室内練習場、昼の2軍戦、夜の自主練習。変わらない毎日が続いています。',
+    auto: 2,
+    choices: [
+      {
+        label: '居残り練習を増やす',
+        hint: '評価につながるかもしれないが、疲れがたまる',
+        effects: { gain: 0.02, fatigue: 10 },
+        outcomes: [{ text: '全体練習のあとも、バッティング投手を頼んで打ち込みました。', effects: { eval: 2, flag: 'pro.stay' }, follow: [{ id: 'x.pro.promoTalk', after: 1 }] }],
+      },
+      { label: 'コーチに自分の弱点を聞く', effects: { eval: 2, rel: 1 }, outcomes: [{ text: '2軍コーチに弱点を率直に尋ね、課題を紙に書き出しました。', effects: { skill: { fielding: 0.1 } } }] },
+      { label: '決められたメニューを守る', outcomes: [{ text: '無理はせず、決められたメニューどおりの一日をこなしました。' }] },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.pro.promoTalk',
+    category: 'farmLife',
+    stages: ['pro'],
+    followOnly: true,
+    when: (s) => proAny(s) && hasFlag(s, 'pro.stay'),
+    outcomes: [
+      { weight: 2, text: '居残りを続けていた姿が評価され、首脳陣から昇格の候補として名前が挙がりました。', effects: { eval: 4, conf: 4 } },
+      { weight: 1, text: '努力は認められたものの、昇格の枠は他の選手に回りました。', effects: { conf: -1 } },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.pro.callUp',
+    category: 'callUp',
+    stages: ['pro'],
+    when: (s) => pro(s) && s.career.proDebut && (role(s) === 'bench' || role(s) === 'outside'),
+    weight: 4,
+    cooldown: 2,
+    maxPerLife: 3,
+    title: '1軍の座を争う',
+    body: '1軍の枠をめぐって、同じポジションの選手と争っています。',
+    auto: 2,
+    choices: [
+      { label: '自分の持ち味を首脳陣に伝える', flag: 'pro.sellSelf', follow: [{ id: 'x.pro.callUpBack', after: 1, within: 3 }], effects: { eval: 2 }, outcomes: [{ text: '面談で、走塁と守備の強みを具体的な場面を挙げて説明しました。', effects: { conf: 2 } }] },
+      {
+        label: '2軍で数字を残すことに集中する',
+        flag: 'pro.farmNumbers',
+        follow: [{ id: 'x.pro.callUpBack', after: 1, within: 3 }],
+        effects: { gain: 0.01, fatigue: 6 },
+        outcomes: [
+          { weight: 2, text: '2軍で打率を3割近くに乗せ、昇格のうわさが耳に入りました。', effects: { eval: 3 } },
+          { weight: 1, text: '数字を意識しすぎて、打席で力みが出てしまいました。', effects: { conf: -2 } },
+        ],
+      },
+      { label: '与えられた場所で淡々とやる', outcomes: [{ text: '昇格を考えすぎず、与えられた試合に淡々と臨みました。' }] },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.pro.contract',
+    category: 'contract',
+    stages: ['pro'],
+    when: (s) => pro(s) && s.career.proDebut,
+    weight: 4,
+    cooldown: 1,
+    maxPerLife: 6,
+    title: '契約更改',
+    body: '今季の査定をもとに、来季の契約の話し合いが始まりました。',
+    auto: 0,
+    choices: [
+      {
+        label: '提示された額でサインする',
+        outcomes: [{ text: (s) => rotate(s, 'x.pro.contract', ['球団の提示を受け入れ、静かにサインしました。', '査定の説明を聞き終え、提示された額で更改を済ませました。', '細かい注文はつけず、判を押して球団事務所をあとにしました。']) }],
+      },
+      {
+        label: '増額を求めて交渉する',
+        hint: '上積みを得られることもあるが、拒まれることもある',
+        outcomes: [
+          { weight: 1, text: '数字の根拠を示して交渉し、提示より少し上の額で更改しました。', effects: { money: 120, conf: 2 } },
+          { weight: 2, text: '「来季に期待する」と押し返され、提示どおりになりました。', effects: { conf: -2 } },
+        ],
+      },
+      // (asked for only within two years of free agency, or where the league has none: contractTiming.ts)
+      { label: '複数年の契約を希望する', hint: '来季以降の安心を得る', when: (s) => multiYearWeight(s) > 0, effects: { eval: -1 }, outcomes: [{ text: '複数年での契約を希望し、球団と条件を詰めました。', effects: { flag: 'pro.multi' }, follow: [{ id: 'x.pro.multiPay', after: 1 }] }] },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.pro.multiPay',
+    category: 'contract',
+    stages: ['pro'],
+    followOnly: true,
+    when: (s) => proAny(s) && hasFlag(s, 'pro.multi'),
+    outcomes: [
+      { weight: 2, text: '複数年の契約のおかげで、不振の年にも落ち着いて練習に向き合えました。', effects: { conf: 3, money: 60 } },
+      { weight: 1, text: '複数年の契約を結んだものの、結果が出ず、周囲の視線が気になりました。', effects: { conf: -2 } },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.pro.slump',
+    category: 'slumpWork',
+    stages: ['pro'],
+    when: (s) => proAny(s) && conf(s) < 45,
+    weight: 4,
+    cooldown: 2,
+    maxPerLife: 3,
+    title: '結果が出ない日々',
+    body: '数字が上がらず、ファンの声やメディアの報道が気になるようになりました。',
+    auto: 2,
+    choices: [
+      { label: 'コーチと一から課題を洗い出す', effects: { gain: -0.01, fatigue: 5 }, outcomes: [{ text: 'コーチと映像を見返し、課題を一つずつ書き出して取り組み始めました。', effects: { flag: 'pro.rework' }, follow: [{ id: 'x.pro.reworkBloom', after: 1 }] }] },
+      { label: '数日だけ休んで気持ちを切り替える', effects: { fatigue: -15, conf: 2 }, outcomes: [{ text: '球場を離れて数日間、家族と過ごし、頭を空っぽにしました。' }] },
+      { label: '何も変えずに続ける', outcomes: [{ text: '焦りを抑えて、いつものメニューを続けました。' }] },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.pro.reworkBloom',
+    category: 'slumpWork',
+    stages: ['pro'],
+    followOnly: true,
+    when: (s) => proAny(s) && hasFlag(s, 'pro.rework'),
+    outcomes: [
+      { weight: 2, text: '洗い出した課題が一つずつ消え、打球の質が戻ってきました。', effects: { gain: 0.03, conf: 6 } },
+      { weight: 1, text: '課題は整理できたものの、結果にはなかなか結びつきませんでした。', effects: { conf: -1 } },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.pro.rehab',
+    // pro injuries come from the player's own earlier choices (camp, rushing back): not reached by おまかせ
+    needsChoice: true,
+    category: 'rehab',
+    stages: ['pro'],
+    when: (s) => proAny(s) && s.career.injured > 0,
+    weight: 8,
+    cooldown: 2,
+    maxPerLife: 3,
+    title: 'リハビリの期間',
+    body: 'けがで戦列を離れ、リハビリの日々が続いています。復帰の時期をめぐって、焦りが出ています。',
+    auto: 2,
+    choices: [
+      { label: '予定を早めて復帰を目指す', flag: 'pro.rehabFast', follow: [{ id: 'x.pro.rehabBack', after: 1, within: 3 }], hint: '早く戻れるが、再発のおそれがある', effects: { eval: 1 }, outcomes: [{ weight: 2, text: '予定より早く実戦に戻り、チームから歓迎されました。', effects: { conf: 2 } }, { weight: 1, text: '無理が再発につながり、リハビリの期間が延びました。', effects: { injury: 1, health: -3, conf: -4 } }] },
+      { label: 'トレーナーの計画どおりに進める', flag: 'pro.rehabPlan', follow: [{ id: 'x.pro.rehabBack', after: 1, within: 3 }], effects: { health: 1 }, outcomes: [{ text: '焦る気持ちを抑え、トレーナーの計画どおりに段階を踏んで戻しました。', effects: { conf: 2 } }] },
+      { label: '指示どおりにリハビリを続ける', outcomes: [{ text: '球団の指示どおりのリハビリを、毎日欠かさず続けました。' }] },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.pro.trade',
+    category: 'moveTeam',
+    stages: ['pro'],
+    when: (s) => pro(s) && s.age >= 25,
+    weight: 3,
+    cooldown: 3,
+    maxPerLife: 2,
+    title: 'トレードの打診',
+    body: '球団から、他球団とのトレード話があると伝えられました。決めるのは球団どうしの話し合いで、あなたには希望が聞かれます。',
+    // おまかせ: no answer (neutral, as the old おまかせ answer was): nothing moves
+    auto: 2,
+    choices: [
+      { label: '受け入れて移る', flag: 'pro.tradeMoved', follow: [{ id: 'x.pro.tradeBack', after: 1, within: 3 }], hint: '出場機会が増えるかもしれないが、慣れた環境を離れる', effects: { moveTeam: true, rel: -3, conf: 3 }, outcomes: [{ text: (s) => `トレードを受け入れ、荷物を送って新しい球団へ向かいました。${numberWords(s)}` }] },
+      {
+        label: '残留を希望する',
+        hint: '希望は伝えるが、決めるのは球団。通るとは限らない（通る確率はモデル上の仮定）',
+        // the club's decision is separate from his wish: a regular is kept more often than a player outside the squad; a wish alone does not stop a trade
+        outcomes: [
+          { weight: (s) => (role(s) === 'starter' ? 3 : role(s) === 'bench' ? 2 : 1), text: '残りたいと伝えると、球団も事情を理解し、トレードは見送りになりました。', effects: { conf: 1 } },
+          { weight: 1, text: (s) => `希望は伝えましたが、球団どうしの話はすでにまとまっていて、トレードは成立しました。荷物を送って新しい球団へ向かいました。${numberWords(s)}`, effects: { moveTeam: true, rel: -3, flag: 'pro.tradeMoved' }, follow: [{ id: 'x.pro.tradeBack', after: 1, within: 3 }] },
+        ],
+      },
+      { label: '返事をせず、様子を見る', outcomes: [{ text: '返事を保留していると、球団の話は先に進まないまま、時間が過ぎました。' }] },
+    ],
+  },
+  {
+    ...X,
+    id: 'x.pro.prepare',
+    category: 'secondCareer',
+    stages: ['pro'],
+    when: (s) => proAny(s) && s.age >= 28 && !hasFlag(s, 'pro.qual') && !hasFlag(s, 'pro.staff'),
+    weight: 3,
+    cooldown: 2,
+    maxPerLife: 2,
+    title: '現役のあとの準備',
+    body: '同期や後輩が、少しずつ球団を去っていきます。自分の番がいつ来るかは、誰にも分かりません。',
+    auto: 2,
+    choices: [
+      { label: '資格の勉強を始める', hint: 'トレーナーなどの仕事につながる', effects: { know: 4, fatigue: 4 }, outcomes: [{ text: '遠征の移動中に、トレーナーの資格の参考書を開くようになりました。', effects: { flag: 'pro.qual' } }] },
+      { label: '球団スタッフへの希望を伝えておく', effects: { rel: 2 }, outcomes: [{ text: '球団の担当者に、現役のあとも球団に残りたいという希望を伝えました。', effects: { flag: 'pro.staff' } }] },
+      { label: '現役に集中する', outcomes: [{ text: '先のことは考えず、目の前の試合に集中しました。' }] },
+    ],
+  },
+]

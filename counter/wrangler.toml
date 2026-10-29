@@ -1,0 +1,17 @@
+# Cloudflare Worker for the counter of lives begun (PROJECT_PLAN §11.51, §11.54). Nothing here is secret (a database id is not a credential).
+# PUBLISHED on workers.dev only (2026-10-19): https://baseball-life-counter.baseball-life-counter.workers.dev . The game's provisional Pages site is allowed (ALLOWED_ORIGINS below); no route for 1in120k.com is set.
+name = "baseball-life-counter"
+main = "worker.ts"
+compatibility_date = "2026-10-01"
+# the address https://baseball-life-counter.<account>.workers.dev (no DNS change; no route for 1in120k.com is set)
+workers_dev = true
+
+[vars]
+# The origin of the game (comma-separated if there are more). The provisional Pages site and the own domain (2026-10-20); www is NOT added.
+# Do not leave it empty in production: empty allows every origin (development only).
+ALLOWED_ORIGINS = "https://baseball-life-1mo.pages.dev,https://1in120k.com"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "baseball-life-counter"
+database_id = "2d882a16-cd5e-4d2b-b52a-7434d5c4c68a"
