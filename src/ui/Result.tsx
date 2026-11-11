@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import type { LifeState } from '../engine/types.ts'
 import { fullName, prefName } from '../engine/life.ts'
 import { shownAge } from '../engine/displayAge.ts'
+import { honourCounts } from '../engine/titles.ts'
 import { epitaph, highestLabel, keyMoments, lifeTitle } from '../engine/summary.ts'
 import { kidBallReached } from '../engine/kidBall.ts'
 import { languageRows } from '../engine/language.ts'
@@ -247,7 +248,13 @@ export function Result({ life, cohort, cohortProgress, onAgain, onTop }: Props) 
             </div>
             <div>
               <dt>{t('res.achievements')}</dt>
-              <dd>{life.career.achievements.filter((a) => a !== '孫' && a !== '少年野球の指導').map(g).join(t('life.sep')) || '—'}</dd>
+              <dd>
+                {[
+                  ...life.career.achievements.filter((a) => a !== '孫' && a !== '少年野球の指導').map(g),
+                  // an NPB player's titles and big moments, with how many times (engine/titles.ts)
+                  ...honourCounts(life).map(([id, n]) => (n > 1 ? t('hon.times', { name: t(`hon.${id}`), n }) : t(`hon.${id}`))),
+                ].join(t('life.sep')) || '—'}
+              </dd>
             </div>
             <div>
               <dt>{t('res.hsHr')}</dt>

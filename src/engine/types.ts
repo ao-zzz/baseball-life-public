@@ -367,7 +367,15 @@ export interface Records {
   tournaments: { age: number; name: string; result: string; line: StatLine; level?: Level; team?: string }[]
   /** milestones already written (e.g. 'hs.hr.10') */
   marks: string[]
+  /** an NPB player's titles, awards and big moments, by season (engine/titles.ts); absent in older saves */
+  honours?: { age: number; id: HonourId }[]
 }
+
+/**
+ * the titles (首位打者 avg, 本塁打王 hr, 打点王 rbi, 盗塁王 sb, 最多安打 h, 最多勝 w, 最優秀防御率 era, 最多奪三振 k), the awards (mvp,
+ * rookie = 新人王, best9) and the big moments (nohit, perfect, allstar, jseries = 日本シリーズ出場, champion = 日本一)
+ */
+export type HonourId = 'avg' | 'hr' | 'rbi' | 'sb' | 'h' | 'w' | 'era' | 'k' | 'mvp' | 'rookie' | 'best9' | 'nohit' | 'perfect' | 'allstar' | 'jseries' | 'champion'
 
 export interface LifeStatus {
   health: number

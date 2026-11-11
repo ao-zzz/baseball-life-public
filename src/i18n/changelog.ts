@@ -5,6 +5,12 @@ import { moneyTokens } from './currency.ts'
 // in Japanese has no translation until one is written here (the tests list it), and is shown in Japanese until then.
 
 const EN: Record<string, string> = {
+  'プロ野球（NPB）の1軍で、首位打者・本塁打王・打点王・盗塁王・最多安打・最多勝・最優秀防御率・最多奪三振のタイトルを取れるようにしました。その年の成績を、実際のNPBのリーグ1位の成績（2015〜2025年のどれか1シーズン）と比べて決めます。MVP・ベストナイン・新人王にも選ばれます（選び方はゲーム上のルール）。':
+    'On an NPB first team he can now win titles: the batting title, home runs, RBIs, stolen bases, most hits, most wins, ERA and strikeouts. The year’s stats are compared with the league leaders of a real NPB season (one of 2015–2025). He can also be named MVP, to the Best Nine or Rookie of the Year (chosen by the game’s own rules).',
+  'ノーヒットノーラン・完全試合、オールスター出場、日本シリーズ出場と日本一の出来事を加えました。ノーヒットノーランの頻度は、実際のNPBの記録から計算しています。':
+    'New events: a no-hitter or a perfect game, the All-Star game, playing in the Japan Series and winning it. How often a no-hitter happens comes from NPB’s real records.',
+  'タイトルや出来事は、年度別成績の表と結果画面の「野球で残したもの」に表示されます。これまでの人生の進み方や確率は変わりません。':
+    'Titles and these events are shown in the year-by-year table and under “Baseball achievements” on the result screen. Nothing else in how a life goes, nor any chance, has changed.',
   '歯科・医科・薬科・看護・教育の大学に進むと、歯科医師・医師・薬剤師・看護師・教員の道が開けるようにしました。医・歯・薬は6年で卒業し、国家試験（3回まで）に合格するとその仕事に就けます。開業や夜勤、母校のチームドクターなどの出来事もあります。合格率と年収はゲーム上の仮定です。':
     'Entering a dental, medical, pharmacy, nursing or education university now opens the way to work as a dentist, doctor, pharmacist, nurse or teacher. Medicine, dentistry and pharmacy take six years; passing the national exam (up to three tries) opens the job. There are events such as opening his own practice, night shifts and becoming his old team’s doctor. The pass rates and the pay are game assumptions.',
   '若くして戦力外になり、合同トライアウトでも声がかからなかったとき、独立リーグや大学への入り直しを選べるようにしました。':

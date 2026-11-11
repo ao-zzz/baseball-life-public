@@ -1,6 +1,7 @@
 import type { LifeEntryStop, LifeState, StatLine } from '../engine/types.ts'
 import { YEN_PER_DOLLAR, usdToMan } from '../engine/contract.ts'
 import { isPlaying } from '../engine/life.ts'
+import { honoursOf } from '../engine/titles.ts'
 import { shownAge } from '../engine/displayAge.ts'
 import { yen } from './format.ts'
 import { lang, num, t, type Key } from '../i18n/index.ts'
@@ -191,6 +192,8 @@ export function ProYears({ life, fold }: { life: LifeState; fold?: boolean }) {
   // a US life's levels are the majors and the minors; a Japanese life's MLB games are their own level ('mlb', careerSeason.ts mlbSeason)
   const us = life.person.country === 'US'
   const LV = us ? LEVEL_US : LEVEL
+  const honours = honoursOf(life)
+  const honoursAt = (age: number) => honours.filter((h) => h.age === age).map((h) => h.id)
   return (
     <Panel fold={fold} className="proyears" title={<>{t('panel.proyears')} <span className="lbl">{t('panel.gameRecord')}</span></>}>
       <div className="tablewrap">
@@ -239,7 +242,9 @@ export function ProYears({ life, fold }: { life: LifeState; fold?: boolean }) {
                     <td>{p ? yen(p.salary) : '—'}</td>
                   </tr>,
                 ]
-              return lines.map((r, i) => (
+              // the titles and big moments of that 1軍 season (an NPB player's: engine/titles.ts), on a row of their own under it
+              const won = honoursAt(age)
+              return lines.flatMap((r, i) => [
                 <tr key={`${age}-${r.level}`}>
                   <td title={t('pro.year', { year })}>{i === 0 ? seasonAge : ''}</td>
                   <td>{g(r.team ?? p?.team ?? '—')}</td>
@@ -267,8 +272,18 @@ export function ProYears({ life, fold }: { life: LifeState; fold?: boolean }) {
                     {i === 0 && p ? yen(p.salary) : ''}
                     {i === 0 && p?.firstTeam ? <small className="kv-sub">{t('pro.firstTeam', { amount: yen(p.firstTeam) })}</small> : null}
                   </td>
-                </tr>
-              ))
+                </tr>,
+                ...(r.level === 'pro' && won.length
+                  ? [
+                      <tr key={`${age}-honours`} className="honours">
+                        <td />
+                        <td colSpan={pitcher ? 8 : 9}>
+                          <small>{won.map((id) => t(`hon.${id}`)).join(t('life.sep'))}</small>
+                        </td>
+                      </tr>,
+                    ]
+                  : []),
+              ])
             })}
             {(['pro', 'farm', 'mlb'] as const).map((lv) => {
               const l = total(lv)
@@ -308,6 +323,7 @@ export function ProYears({ life, fold }: { life: LifeState; fold?: boolean }) {
         {seasons.some((x) => x.level === 'mlb') && t('pro.note.mlb')}
         {/* (NPB's rule: a Japanese life's table only) */}
         {(life.person.country ?? 'JP') === 'JP' && t('pro.note.npb')}
+        {honours.length > 0 && t('pro.note.honours')}
       </p>
     </Panel>
   )

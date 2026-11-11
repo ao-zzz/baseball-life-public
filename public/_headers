@@ -1,0 +1,7 @@
+# Cloudflare Pages: keep the pages.dev copies (the project address and each deployment's address) out of search results.
+# The same site is served at https://1in120k.com, which is the one that should be found.
+https://:project.pages.dev/*
+  X-Robots-Tag: noindex
+
+https://:version.:project.pages.dev/*
+  X-Robots-Tag: noindex

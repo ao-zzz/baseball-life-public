@@ -212,7 +212,7 @@ function seasonEntry(l: StatLine, type: ProType): string {
   return `${l.games}試合・${type === 'batter' ? (l.ab ? `打率${avg(l)}・${l.hr}本塁打` : '打席なし') : `${l.w}勝${l.l}敗・防御率${era(l)}`}`
 }
 
-function greatSeason(l: StatLine, type: ProType): boolean {
+export function greatSeason(l: StatLine, type: ProType): boolean {
   if (type === 'batter') return l.pa >= 400 && (l.h / Math.max(1, l.ab) >= 0.3 || l.hr >= 30)
   if (type === 'starter') return l.outs >= 390 && (l.er * 27 < l.outs * 2.5 || l.w >= 13)
   return l.games >= 50 && l.er * 27 < l.outs * 2

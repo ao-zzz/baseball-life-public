@@ -55,6 +55,7 @@ import { BENCH_SIZE, BENCH_SIZE_ADULT, NO_GRADE_SHIFT, UNIV_GRADE_SHIFT, ability
 import { fallTournament, hsPrefecture, practiceGames, springNationals, springTournament, summerTournament } from './season.ts'
 import { hsCareerHr, lineAt } from './games.ts'
 import { SCOUT_VISIT, TEAM_AFTER_HS, companySeason, indepSeason, mlbSeason, proSeason, proType, scoutPerf, univHalf, univPractice } from './careerSeason.ts'
+import { seasonHonours } from './titles.ts'
 import { AFTER_EVENTS } from './afterEvents.ts'
 import { LIFE_LOVE_EVENTS } from './lifeLoveEvents.ts'
 import { LIFE_ABROAD_EVENTS } from './lifeAbroadEvents.ts'
@@ -2172,7 +2173,11 @@ function proYear(y: YearCtx) {
   // agrees with them: 1軍 games only from the first one on, a thin year when released
   const debutedBefore = s.career.proDebut
   const season = (released: boolean) => {
-    if (s.bb) proSeason(y.eventCtx(0x9a0), { ikusei: false, debuted: s.career.proDebut, debutNow: s.career.proDebut && !debutedBefore, released, standing: s.career.proStanding ?? salaryStanding(s) })
+    if (s.bb) {
+      proSeason(y.eventCtx(0x9a0), { ikusei: false, debuted: s.career.proDebut, debutNow: s.career.proDebut && !debutedBefore, released, standing: s.career.proStanding ?? salaryStanding(s) })
+      // the season's titles, awards and big moments, on their own stream: a record only (engine/titles.ts)
+      seasonHonours(y.eventCtx(0x7171), released)
+    }
     // the first team's minimum guarantee for the days on its roster this season (beside the salary)
     firstTeamPay(y)
   }

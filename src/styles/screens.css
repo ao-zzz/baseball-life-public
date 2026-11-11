@@ -1956,6 +1956,14 @@
   font-weight: 700;
 }
 
+/* the titles and big moments of a 1軍 season, on the row under it (the whole width, wrapped) */
+.proyears tr.honours td:nth-child(2) {
+  max-width: none;
+  white-space: normal;
+  font-weight: 700;
+  color: var(--accent);
+}
+
 .sitefoot {
   margin: 28px 0 90px;
   padding-top: 16px;

@@ -213,6 +213,52 @@ export const STAT_EN: Record<string, StatEn> = {
     asOf: OLD_EDITION_RULE,
     verifyNote: `Counted: NPB main-roster players (table on p.5 of the material of ${JPBPA} (2022 edition)). The {yen~:16000000} and 150-day formula and the definition were confirmed in the source (2026-10-22). The material is the 2022 edition, and the rules for 2025 and 2026 have not been confirmed (the text of the Baseball Agreement itself is not public). The source gives no breakdown by sex, so it is not asserted to be a value for males only; it is used as a reference value for the male career model. The game does not record days registered on the first team, so it counts them as “the share of one first-team season” × 150 days, the same as its conversion for FA rights (a model conversion).`,
   },
+  npbTitleLeaders: {
+    population: 'NPB first teams (Central and Pacific Leagues)',
+    definition:
+      'The league leaders’ figures (batting average, home runs, RBIs, stolen bases, hits; wins, ERA, strikeouts): 10 seasons of 2015–2025 (without the 120-game 2020) × 2 leagues. The game compares the year’s stats with the leaders of one season of his league (one drawn each year); equalling or passing a leader’s figure wins the title',
+    asOf: '2015–2025 (without 2020)',
+    verifyNote: 'Counted: the batters and pitchers of each NPB first-team league (the leaders’ pages). The leaders’ figures were confirmed on each page of the source (2026-11-11; no player names are kept). Deciding a title against one season is the game’s own rule.',
+  },
+  npbQualify: {
+    population: 'NPB first teams',
+    definition:
+      'Qualifying plate appearances = team games × 3.1 (443 in 143 games); qualifying innings = team games × 1.0 (143). Only players who reach them can win the batting title or the ERA title',
+    asOf: '2025',
+    verifyNote: 'Counted: NPB first-team batters and pitchers (how the qualification is computed). Confirmed in the text of the source’s batting and pitching pages (2026-11-11).',
+  },
+  npbNoHitRate: {
+    population: 'NPB first-team starts',
+    definition:
+      'No-hitters (by one pitcher) per start: 12 in the 10 seasons of 2015–2025 (without 2020), with 143 games × 12 clubs = 1,716 starts a season',
+    asOf: '2015–2025 (without 2020)',
+    verifyNote: 'Counted: no-hitters in NPB official games (combined no-hitters excluded). The dates were confirmed in the source’s list (2026-11-11). No difference is made by the pitcher’s ability (a simplification of the game).',
+  },
+  npbPerfectShare: {
+    population: 'NPB no-hitters',
+    definition: 'The share of perfect games among the no-hitters (16 of all 103)',
+    asOf: '2026',
+    verifyNote: 'Counted: all no-hitters in NPB official games. Confirmed in the source’s list, “91 pitchers, 103 times (perfect games: 16 pitchers, 16 times)” (2026-11-11). An all-time share, old games included.',
+  },
+  npbJapanSeries: {
+    population: 'The 12 NPB clubs',
+    definition: 'The share of clubs playing the Japan Series in a season (two of the twelve, the champions of the two leagues); one of the two wins it',
+    asOf: '-',
+    verifyNote: 'The 12 clubs in 2 leagues were confirmed in the source. No difference is made by a club’s strength (a simplification of the game).',
+  },
+  npbAwardRule: {
+    population: 'NPB first-team players (in the game)',
+    definition:
+      'How MVP, Best Nine and Rookie of the Year are chosen (the game’s rule). MVP: chosen if the year’s titles plus a Japan Series appearance come to 3 or more, an even chance at 2. Best Nine: a fielder with the qualifying plate appearances is chosen with a title, an even chance with a .300 average or 25 home runs; a starting pitcher is chosen with the most wins or the ERA title, an even chance with another title. Rookie of the Year: 60% in an eligible year with a title or a good season (.270 or better in 300 plate appearances, 8 wins or more with an ERA under 3.00, and so on)',
+    asOf: '-',
+    verifyNote: `${NO_DATA} In reality they are chosen by reporters’ votes and the like, against the other players. The Rookie of the Year eligibility (within 5 years of joining, no more than 60 plate appearances / 30 innings on the first team before, no pro play abroad) is from press reports.`,
+  },
+  npbAllStar: {
+    population: 'NPB first-team players (in the game)',
+    definition: 'The share chosen for the All-Star game (the game’s rule): 60% after a year with a title or a great season, 15% for a regular, 3% for a bench player',
+    asOf: '-',
+    verifyNote: `${NO_DATA} In reality they are chosen by the fans’ vote, the players’ vote and the managers.`,
+  },
   jpSalaryMean: {
     population: SALARY_713,
     definition: `Mean salary (survey by ${JPBPA})`,
@@ -881,6 +927,26 @@ export const SOURCE_EN: Record<string, SourceEn> = {
     original: '12球団（セントラル・リーグ、パシフィック・リーグ）',
     publisher: 'NPB',
     checkNote: 'Confirmed the names of the 6 Central League clubs and the 6 Pacific League clubs (the 2026 page).',
+  },
+  npbLeaders: {
+    title: 'League leaders (batting, pitching), 2015–2025',
+    original: 'リーダーズ（打撃部門・投手部門）2015〜2025年度',
+    publisher: 'NPB',
+    checkNote:
+      'On the batting and pitching pages of both leagues for each season (without 2020; the year and league changed in the URL), confirmed the first-place figures of batting average, home runs, RBIs, stolen bases, hits, wins, ERA and strikeouts.',
+  },
+  npbQualify: {
+    title: 'Individual batting (qualified) and pitching (qualified), 2025',
+    original: '個人打撃成績（規定打席以上）・個人投手成績（規定投球回以上）2025年度',
+    publisher: 'NPB',
+    checkNote: 'Confirmed “qualifying plate appearances: team games × 3.1 (rounded)” and, on the pitching page, “qualifying innings: team games × 1.0”.',
+  },
+  npbNoHitters: {
+    title: 'Record holders: no-hit, no-run games',
+    original: '各種記録達成者一覧 無安打無得点試合',
+    publisher: 'NPB',
+    checkNote:
+      'Confirmed the all-time “91 pitchers, 103 times (perfect games: 16 pitchers, 16 times)” and the dates of 2015–2025 (once in 2018, twice in 2019, 5 times in 2022, twice in 2023, twice in 2024, none in the other years; combined no-hitters are in another table).',
   },
   iblj: {
     title: 'Shikoku Island League Plus official site',
