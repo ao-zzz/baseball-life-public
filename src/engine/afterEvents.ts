@@ -5,7 +5,7 @@ import { shownAge } from './displayAge.ts'
 import { companyText, ensureAfter, firstYearIncome, jobOffers, loseWork, setWork, severance } from './after.ts'
 import { clamp } from './math.ts'
 import { PARTNER_NAMES } from '../data/jp.ts'
-import { addKid, bookProposal, drawPartner, infoWords, kidNameOf, partnerWords } from './family.ts'
+import { addKid, bookProposal, drawPartner, infoWords, isCeleb, kidNameOf, partnerWords } from './family.ts'
 import { companyJob, employed, hasFamily, hasFlag, hasSibling } from './events/spec.ts'
 import { moveAway } from './place.ts'
 import { graduationAge } from './license.ts'
@@ -751,7 +751,15 @@ export const AFTER_EVENTS: EventDef[] = [
         delete c.s.family.ended
         delete c.s.family.endedAge
         bump(c, { happy: 10, money: -80 })
-        c.add('big', `${name}さんと結婚しました。`, { key: true })
+        // someone in the public eye he met as a known pro (lifeLoveEvents.ts celebShare): the wording only
+        const p = c.s.family.partnerInfo
+        if (p?.name === name && isCeleb(p.job)) {
+          c.s.family.wifeJob = p.job
+          c.add('big', `${p.job}の${name}さんと結婚しました。結婚の知らせは、スポーツ紙にも載りました。`, { key: true, statIds: ['celebPartner'] })
+        } else {
+          delete c.s.family.wifeJob
+          c.add('big', `${name}さんと結婚しました。`, { key: true })
+        }
         if (A(c.s).home === 'parents') {
           A(c.s).home = 'rent'
           c.add('decision', '実家を出て、二人で暮らす部屋を借りました。')

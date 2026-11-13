@@ -16,14 +16,29 @@ const own = (s: LifeState, salt: number): Rng => makeRng(hashSeed(s.config.seed 
 /** the work of someone his partner's age (a few common kinds; an assumption of the game) */
 const JOBS = ['会社員', '看護師', '保育士', '小学校の教員', '公務員', '美容師', '販売員', '事務職', '薬剤師', 'デザイナー', '飲食店の店員', '銀行員']
 
-/** the partner he meets now: a few years younger or older, and what they do */
-export function drawPartner(s: LifeState, name: string, salt = 0): PartnerInfo {
+/** the work of someone in the public eye whom a well-known pro may meet (stat celebPartner; an assumption of the game) */
+export const CELEB_JOBS = ['アナウンサー', 'タレント', 'アイドル', 'モデル', '女優']
+const CELEB_WEIGHTS = [3, 2, 2, 2, 1]
+
+/**
+ * the partner he meets now: a few years younger or older, and what they do. `celeb` is the chance that they are in the public eye
+ * (lifeLoveEvents.ts celebShare: a known pro's); it is drawn on a stream apart, so whoever meets someone with `celeb` 0 meets the same
+ * person as before, and a known pro meets the same person in every other respect.
+ */
+export function drawPartner(s: LifeState, name: string, salt = 0, celeb = 0): PartnerInfo {
   const r = own(s, 0x9a27 ^ salt)
   const gap = r.weighted([-4, -3, -2, -1, 0, 1, 2, 3], [1, 2, 3, 3, 3, 2, 1, 1])
   const age = s.age + gap
-  const job = age <= 22 && r.chance(0.6) ? '大学生' : r.pick(JOBS)
+  let job = age <= 22 && r.chance(0.6) ? '大学生' : r.pick(JOBS)
+  if (celeb > 0) {
+    const rc = own(s, 0x5ce1 ^ salt)
+    if (rc.chance(celeb)) job = rc.weighted(CELEB_JOBS, CELEB_WEIGHTS)
+  }
   return { name, gap, job }
 }
+
+/** the partner (or the wife) is someone in the public eye */
+export const isCeleb = (job: string | undefined): boolean => !!job && CELEB_JOBS.includes(job)
 
 /**
  * After 「もう少しこのままでいる」 (love.wait), the proposal comes back two years on by itself, instead of waiting for the year's draw

@@ -402,6 +402,7 @@ export const KO: Record<Key, string> = {
   'res.family.kids': ' · 자녀 {n}명',
   'res.family.kids.one': ' · 자녀 {n}명',
   'res.family.grandkids': ' · 손주',
+  'res.family.spouseJob': '아내는 {job}',
   'res.family.kidBall': '{name}의 야구: {reached}',
   'life.teamCompany': '근무처: {name}을(를) 운영하는 회사',
   'res.happiest': '가장 행복했던 해',

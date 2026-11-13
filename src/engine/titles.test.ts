@@ -32,18 +32,22 @@ import type { LifeConfig, LifeState } from './types.ts'
 const sim: Sim = { params: defaultParams(), headless: true }
 const config = (i: number, country: LifeConfig['country'] = 'JP'): LifeConfig => ({ seed: hashSeed(i + 4_000_000), country, pace: 'p15', mode: 'potential', stars: 10 })
 
-/** the life without the honours: its lines by age (order within the year aside: the honours' lines take slots of the year), the
- * state without the log and without the record of honours */
+/**
+ * the life without the honours: its lines by age (order within the year aside: the honours' lines take slots of the year), and the
+ * state without the log, the record of honours and the record of the events met. The honours feed one thing on purpose: the people a
+ * known pro meets (lifeLoveEvents.ts celebShare, honourPoints, 1.9.0), so the everyday-life events of the playing years (category
+ * life…, answered おまかせ with a line and no change of state) may come in other years; their lines are left out here.
+ */
 function strip(s: LifeState) {
   const lines = new Map<number, string[]>()
-  for (const e of s.log) if (!ctl.texts.has(e.text)) lines.set(e.age, [...(lines.get(e.age) ?? []), `${e.kind}|${e.text}`].sort())
-  const rest = structuredClone({ ...s, log: [] }) as LifeState
+  for (const e of s.log) if (!ctl.texts.has(e.text) && !e.category?.startsWith('life')) lines.set(e.age, [...(lines.get(e.age) ?? []), `${e.kind}|${e.text}`].sort())
+  const rest = structuredClone({ ...s, log: [], evHist: undefined, taken: [], flags: undefined }) as LifeState
   if (rest.bb?.rec) delete rest.bb.rec.honours
   return { lines: [...lines], rest }
 }
 
 describe('titles and big moments of an NPB season', () => {
-  it('change nothing else in a life: the same lines, money, career and state without them', () => {
+  it('change nothing else in a life but the people he meets: the same lines, money, career and state without them', () => {
     let met = 0
     for (let i = 0; i < 40; i++) {
       ctl.off = false

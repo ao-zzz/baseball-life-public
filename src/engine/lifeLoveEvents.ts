@@ -1,8 +1,9 @@
 import { rotate, type EventCtx, type EventDef } from './events.ts'
-import type { LifeState } from './types.ts'
+import type { HonourId, LifeState } from './types.ts'
 import { clamp } from './math.ts'
 import { PARTNER_NAMES } from '../data/jp.ts'
-import { addKid, bookProposal, drawPartner, infoWords, partnerWords } from './family.ts'
+import { addKid, bookProposal, drawPartner, infoWords, isCeleb, partnerWords } from './family.ts'
+import { honoursOf } from './titles.ts'
 import { moveAway, moveUnknown } from './place.ts'
 
 // Everyday life during the playing years (PROJECT_PLAN §11.33): meeting someone, going out, the strain of a ballplayer's calendar,
@@ -47,6 +48,26 @@ export function fameOf(s: LifeState): number {
   return clamp(0.4 + 0.3 * (r - 8) + 0.04 * Math.min(s.career.proSeasons, 15) + (s.career.achievements.includes('甲子園') ? 0.3 : 0), 0, 2)
 }
 
+/**
+ * what his titles, awards and big moments add to how well known he is (titles.ts Records.honours): a title or MVP 0.08 (MVP 0.1),
+ * Best Nine, 新人王, a no-hitter or 日本一 0.04, the All-Star game 0.02 (an assumption: stat celebPartner)
+ */
+const HONOUR_POINTS: Partial<Record<HonourId, number>> = { avg: 0.08, hr: 0.08, rbi: 0.08, sb: 0.08, h: 0.08, w: 0.08, era: 0.08, k: 0.08, mvp: 0.1, best9: 0.04, rookie: 0.04, nohit: 0.04, perfect: 0.04, champion: 0.04, allstar: 0.02 }
+export const honourPoints = (s: LifeState): number => honoursOf(s).reduce((a, h) => a + (HONOUR_POINTS[h.id] ?? 0), 0)
+
+/** the share of people in the public eye among those a known pro meets: 10% in the first team, up to 50% (stat celebPartner) */
+export const CELEB = { base: 0.1, perRung: 0.05, max: 0.5 }
+export function celebShare(s: LifeState): number {
+  if (fameOf(s) <= 0) return 0
+  return Math.min(CELEB.max, CELEB.base + CELEB.perRung * (s.career.highestRank - 8) + honourPoints(s))
+}
+
+/** the titles and the MVP he has won, which make a first date likelier (up to +0.2: stat celebPartner) */
+const titleBonus = (s: LifeState): number =>
+  fameOf(s) > 0 ? Math.min(0.2, 0.05 * honoursOf(s).filter((h) => ['avg', 'hr', 'rbi', 'sb', 'h', 'w', 'era', 'k', 'mvp'].includes(h.id)).length) : 0
+
+const CELEB_PLACES = ['番組の収録で', 'テレビ局の関係者の紹介で', '球団のイベントで', '取材で何度か顔を合わせるうちに']
+
 /** the marriage itself: the same state as the life after baseball writes in love.propose */
 export function marry(c: EventCtx, name: string) {
   const f = c.s.family
@@ -70,7 +91,8 @@ const LIFE: EventDef[] = [
     ages: [19, 38],
     // after a divorce a year, after a bereavement two years, before someone new
     when: (s) => single(s) && (s.family.ended === 'death' ? s.age - (s.family.endedAge ?? -99) >= 2 : s.family.ended === 'divorce' ? s.age - (s.family.endedAge ?? -99) >= 1 : true),
-    weight: (s) => (s.age <= 30 ? 2 : 1.1) * (0.6 + s.status.relations / 120),
+    // a pro with titles and awards meets people more often: up to twice (stat celebPartner)
+    weight: (s) => (s.age <= 30 ? 2 : 1.1) * (0.6 + s.status.relations / 120) * (1 + Math.min(1, 2 * (fameOf(s) > 0 ? honourPoints(s) : 0))),
     cooldown: 2,
     maxPerLife: 5,
     lifePass: true,
@@ -78,14 +100,18 @@ const LIFE: EventDef[] = [
     run: (c) => {
       const name = c.rng.pick(PARTNER_NAMES)
       const again = !!c.s.family.ended
-      // who they are (age, work): drawn on a stream of its own (family.ts), shown before he decides and kept if they date
-      const info = drawPartner(c.s, name)
+      // who they are (age, work): drawn on a stream of its own (family.ts), shown before he decides and kept if they date; a known
+      // pro may meet someone in the public eye (celebShare)
+      const info = drawPartner(c.s, name, 0, celebShare(c.s))
+      const celeb = isCeleb(info.job)
       c.ask(
         {
           id: 'life.meet',
           weight: 'minor',
           title: again ? '新しい出会い' : '出会い',
-          body: `${c.rng.pick(MEET_PLACES)}、${name}さん${infoWords(c.s, info)}と知り合いました。野球の話を楽しそうに聞いてくれる人です。`,
+          body: celeb
+            ? `${c.rng.pick(CELEB_PLACES)}、${name}さん${infoWords(c.s, info)}と知り合いました。テレビで見ていた人が、野球の話に身を乗り出して聞いてくれました。`
+            : `${c.rng.pick(MEET_PLACES)}、${name}さん${infoWords(c.s, info)}と知り合いました。野球の話を楽しそうに聞いてくれる人です。`,
           choices: [{ label: '食事に誘ってみる', hint: '野球の合間の時間を使う' }, { label: '今は野球に集中する' }],
           // おまかせ: no change of state
           autoIndex: 1,
@@ -99,7 +125,9 @@ const LIFE: EventDef[] = [
         return
       }
       const fame = fameOf(c.s)
-      const ok = c.rng.chance(clamp(0.45 + (c.s.status.relations - 50) / 100 + 0.1 * fame, 0.2, 0.85))
+      // titles and the MVP make a first date likelier, and lift the ceiling a little (stat celebPartner)
+      const bonus = titleBonus(c.s)
+      const ok = c.rng.chance(clamp(0.45 + (c.s.status.relations - 50) / 100 + 0.1 * fame + bonus, 0.2, bonus > 0 ? 0.9 : 0.85))
       if (ok) {
         c.s.family.partner = String(d.name)
         if (d.job !== undefined) c.s.family.partnerInfo = { name: String(d.name), gap: Number(d.gap), job: String(d.job) }
@@ -178,9 +206,17 @@ const LIFE: EventDef[] = [
       // never a second marriage on top of the first, never a proposal to nobody
       if (!name || c.s.family.spouse) return
       if (choice === 0) {
+        const p = c.s.family.partnerInfo
+        const celeb = p?.name === name && isCeleb(p.job) ? p.job : ''
         marry(c, name)
         bump(c, { happy: 10, money: -80 })
-        c.add('big', `${name}さんと結婚しました。`, { key: true })
+        if (celeb) {
+          c.s.family.wifeJob = celeb
+          c.add('big', `${celeb}の${name}さんと結婚しました。並んで臨んだ会見には、大勢の報道陣が集まりました。`, { key: true, statIds: ['celebPartner'] })
+        } else {
+          delete c.s.family.wifeJob
+          c.add('big', `${name}さんと結婚しました。`, { key: true })
+        }
       } else if (choice === 1) {
         setFlag(c.s, 'love.wait')
         bookProposal(c.s)
@@ -371,7 +407,11 @@ const LIFE: EventDef[] = [
         id: 'life.rumor',
         weight: 'minor',
         title: '熱愛報道',
-        body: `${s.family.partner}さんと並んで歩く姿が、週刊誌に撮られました。球団の広報から、どう答えるか尋ねられています。`,
+        // (a partner in the public eye makes the front page: the wording only, the same choices)
+        body:
+          s.family.partnerInfo?.name === s.family.partner && isCeleb(s.family.partnerInfo.job)
+            ? `${s.family.partnerInfo.job}の${s.family.partner}さんとの交際が、スポーツ紙の一面に大きく載りました。球団の広報から、どう答えるか尋ねられています。`
+            : `${s.family.partner}さんと並んで歩く姿が、週刊誌に撮られました。球団の広報から、どう答えるか尋ねられています。`,
         choices: [{ label: '交際を認めて、堂々と答える' }, { label: '「友人です」と、かわす' }, { label: '何も答えず、野球で応える' }],
         autoIndex: 0,
       })

@@ -259,6 +259,13 @@ export const STAT_EN: Record<string, StatEn> = {
     asOf: '-',
     verifyNote: `${NO_DATA} In reality they are chosen by the fans’ vote, the players’ vote and the managers.`,
   },
+  celebPartner: {
+    population: 'Active NPB first-team players (in the game)',
+    definition:
+      'The share of announcers, TV personalities, idols, models and actresses among the people he meets (the game’s rule): 10% for a player who has played on a first team, 5% more each for 8 years on a first team and for the majors, and 8% for each title so far (MVP 10%; Best Nine, Rookie of the Year, a no-hitter and a Japan Series title 4%; the All-Star game 2%), up to 50%. A player with titles meets people up to twice as often, and his chance of a first date rises by up to 20 points',
+    asOf: '-',
+    verifyNote: `${NO_DATA} There are no official statistics on the work of pro players’ wives. Every person, programme and agency is fictional.`,
+  },
   jpSalaryMean: {
     population: SALARY_713,
     definition: `Mean salary (survey by ${JPBPA})`,

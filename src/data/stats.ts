@@ -243,6 +243,15 @@ export const STATS: Record<string, Stat> = {
     sourceIds: [], sourceType: 'none', unverified: true,
     verifyNote: NO_DATA + '実際はファン投票・選手間投票・監督の推薦で選ばれる。',
   }),
+  celebPartner: S({
+    id: 'celebPartner', value: 0.1, unit: '割合', kind: 'assumption', domain: 'model', sex: 'male',
+    population: 'NPB の1軍で現役の選手（ゲーム内）',
+    definition:
+      '出会う相手のうち、アナウンサー・タレント・アイドル・モデル・女優の割合（ゲーム上のルール）。1軍に出た選手で10%、1軍で8年・メジャーで5%ずつ足し、その年までのタイトル1つにつき8%（MVPは10%、ベストナイン・新人王・ノーヒットノーラン・日本一は4%、オールスターは2%）足して、最大50%。タイトルを取った選手は、出会いの場面が最大2倍来て、食事に誘ったときに付き合える確率も最大20ポイント上がる',
+    asOf: '-',
+    sourceIds: [], sourceType: 'none', unverified: true,
+    verifyNote: NO_DATA + 'プロ野球選手の結婚相手の職業についての公式の統計はない。人物・番組・事務所はすべて架空。',
+  }),
   jpSalaryMean: S({
     id: 'jpSalaryMean', value: 5216, unit: '万円', kind: 'measured', domain: 'baseball', sex: 'unstated',
     population: 'NPB 支配下公示の日本人選手 713人', definition: '年俸の平均（日本プロ野球選手会の調査）', asOf: '2026年',

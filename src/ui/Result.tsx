@@ -3,6 +3,7 @@ import type { LifeState } from '../engine/types.ts'
 import { fullName, prefName } from '../engine/life.ts'
 import { shownAge } from '../engine/displayAge.ts'
 import { honourCounts } from '../engine/titles.ts'
+import { isCeleb } from '../engine/family.ts'
 import { epitaph, highestLabel, keyMoments, lifeTitle } from '../engine/summary.ts'
 import { kidBallReached } from '../engine/kidBall.ts'
 import { languageRows } from '../engine/language.ts'
@@ -230,6 +231,8 @@ export function Result({ life, cohort, cohortProgress, onAgain, onTop }: Props) 
                 {life.family.everMarried ? (life.family.ended === 'divorce' && !life.family.spouse ? t('res.family.divorced') : t('res.family.married')) : t('res.family.single')}
                 {life.family.children ? t(life.family.children === 1 ? 'res.family.kids.one' : 'res.family.kids', { n: life.family.children }) : ''}
                 {life.career.achievements.includes('孫') ? t('res.family.grandkids') : ''}
+                {/* a wife in the public eye (a known pro's: lifeLoveEvents.ts celebShare), kept after her death */}
+                {life.family.everMarried && isCeleb(life.family.wifeJob) && <small className="kv-sub">{t('res.family.spouseJob', { job: g(life.family.wifeJob!) })}</small>}
                 {/* a son's baseball, as far as his father saw it (engine/kidBall.ts) */}
                 {kidBallReached(life).map(([name, reached]) => (
                   <small key={name} className="kv-sub">

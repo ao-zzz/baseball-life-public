@@ -402,6 +402,7 @@ export const ZH_TW: Record<Key, string> = {
   'res.family.kids': '，{n}個孩子',
   'res.family.kids.one': '，{n}個孩子',
   'res.family.grandkids': '，有孫子',
+  'res.family.spouseJob': '妻子是{job}',
   'res.family.kidBall': '{name}的棒球：{reached}',
   'life.teamCompany': '任職於：{name}的母公司',
   'res.happiest': '最幸福的一年',

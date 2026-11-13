@@ -241,6 +241,13 @@ export const STATS_ZH_TW: StatsWords = {
       asOf: '-',
       verifyNote: `${NO_DATA}實際上由球迷投票・球員間投票・總教練推薦選出。`,
     },
+    celebPartner: {
+      population: 'NPB一軍的現役球員（遊戲內）',
+      definition:
+        '遇見的對象中，主播・藝人・偶像・模特兒・女演員的比例（遊戲上的規則）。上過一軍的球員為10%，一軍8年・大聯盟各加5%，到該年為止每拿下1個個人獎項加8%（MVP為10%，最佳九人・新人王・無安打無失分比賽・日本一為4%，明星賽為2%），最高50%。拿過個人獎項的球員，邂逅的場面最多會有2倍，邀約吃飯時能交往的機率也最多提高20個百分點',
+      asOf: '-',
+      verifyNote: `${NO_DATA}關於職棒球員結婚對象職業的官方統計並不存在。人物・節目・經紀公司皆為虛構。`,
+    },
     jpSalaryMean: {
       population: SALARY_713,
       definition: `年薪平均值（${JPBPA}的調查）`,

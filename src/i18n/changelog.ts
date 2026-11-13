@@ -5,6 +5,10 @@ import { moneyTokens } from './currency.ts'
 // in Japanese has no translation until one is written here (the tests list it), and is shown in Japanese until then.
 
 const EN: Record<string, string> = {
+  'プロで1軍に出ると、出会う相手にアナウンサー・タレント・アイドル・モデル・女優が混ざるようにしました。タイトルや受賞が多いほど割合が上がり（最大5割）、出会いの場面も増え、食事に誘ったときに付き合える確率も上がります。割合はゲーム上の仮定です。':
+    'Once he plays on an NPB first team, the people he meets now include announcers, TV personalities, idols, models and actresses. The more titles and awards he wins, the larger their share (up to half), the more often he meets people, and the likelier a first date. The shares are game assumptions.',
+  'その相手と付き合うと熱愛報道がスポーツ紙の一面に載り、結婚すると会見の様子が人生の記録に残ります。結果画面の家族の欄に、妻の職業を表示します。':
+    'Dating one of them puts the romance on the front page of a sports paper, and the wedding’s press conference goes into the record of his life. The family section of the result screen shows his wife’s work.',
   'プロ野球（NPB）の1軍で、首位打者・本塁打王・打点王・盗塁王・最多安打・最多勝・最優秀防御率・最多奪三振のタイトルを取れるようにしました。その年の成績を、実際のNPBのリーグ1位の成績（2015〜2025年のどれか1シーズン）と比べて決めます。MVP・ベストナイン・新人王にも選ばれます（選び方はゲーム上のルール）。':
     'On an NPB first team he can now win titles: the batting title, home runs, RBIs, stolen bases, most hits, most wins, ERA and strikeouts. The year’s stats are compared with the league leaders of a real NPB season (one of 2015–2025). He can also be named MVP, to the Best Nine or Rookie of the Year (chosen by the game’s own rules).',
   'ノーヒットノーラン・完全試合、オールスター出場、日本シリーズ出場と日本一の出来事を加えました。ノーヒットノーランの頻度は、実際のNPBの記録から計算しています。':

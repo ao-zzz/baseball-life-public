@@ -103,6 +103,8 @@ export interface FamilyState {
   partner?: string
   /** who the partner is, drawn when they met (family.ts; optional, absent for partners met before it or in other countries' events) */
   partnerInfo?: PartnerInfo
+  /** the work of his (last) wife when she is in the public eye (family.ts CELEB_JOBS), kept after her death; absent otherwise */
+  wifeJob?: string
   /** the children's names, in the order of `kids` (family.ts; optional, absent for children born in older saves) */
   kidNames?: string[]
   /** age at the first marriage (optional for older saves) */

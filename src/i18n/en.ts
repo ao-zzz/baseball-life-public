@@ -409,6 +409,7 @@ export const EN: Record<Key, string> = {
   'res.family.kids': ', {n} children',
   'res.family.kids.one': ', {n} child',
   'res.family.grandkids': ', grandchildren',
+  'res.family.spouseJob': 'His wife: {job}',
   'res.family.kidBall': "{name}'s baseball: {reached}",
   'life.teamCompany': 'Works for the company behind {name}',
   'res.happiest': 'Happiest year',

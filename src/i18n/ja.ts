@@ -401,6 +401,7 @@ export const JA = {
   'res.family.kids': '・子ども{n}人',
   'res.family.kids.one': '・子ども{n}人',
   'res.family.grandkids': '・孫',
+  'res.family.spouseJob': '妻は{job}',
   'res.family.kidBall': '{name}の野球：{reached}',
   'life.teamCompany': '勤め先：{name}（野球部を持つ会社）',
   'res.happiest': 'いちばん幸せだった年',
