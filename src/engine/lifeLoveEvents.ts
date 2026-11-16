@@ -3,7 +3,7 @@ import type { HonourId, LifeState } from './types.ts'
 import { clamp } from './math.ts'
 import { PARTNER_NAMES } from '../data/jp.ts'
 import { addKid, bookProposal, drawPartner, infoWords, isCeleb, partnerWords } from './family.ts'
-import { honoursOf } from './titles.ts'
+import { honoursOf, STAT_TITLES } from './titles.ts'
 import { moveAway, moveUnknown } from './place.ts'
 
 // Everyday life during the playing years (PROJECT_PLAN §11.33): meeting someone, going out, the strain of a ballplayer's calendar,
@@ -64,7 +64,7 @@ export function celebShare(s: LifeState): number {
 
 /** the titles and the MVP he has won, which make a first date likelier (up to +0.2: stat celebPartner) */
 const titleBonus = (s: LifeState): number =>
-  fameOf(s) > 0 ? Math.min(0.2, 0.05 * honoursOf(s).filter((h) => ['avg', 'hr', 'rbi', 'sb', 'h', 'w', 'era', 'k', 'mvp'].includes(h.id)).length) : 0
+  fameOf(s) > 0 ? Math.min(0.2, 0.05 * honoursOf(s).filter((h) => h.id === 'mvp' || STAT_TITLES.includes(h.id)).length) : 0
 
 const CELEB_PLACES = ['番組の収録で', 'テレビ局の関係者の紹介で', '球団のイベントで', '取材で何度か顔を合わせるうちに']
 

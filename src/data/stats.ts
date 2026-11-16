@@ -193,19 +193,24 @@ export const STATS: Record<string, Stat> = {
     verifyNote: '集計対象: NPBの支配下選手（日本プロ野球選手会の資料〈2022年版〉p.5の表）。1,600万円・150日の式と定義は出典で確認済み（2026-10-22）。資料は2022年版で、2025・2026年度の規定は確認できていない（野球協約の条文そのものは公開されていない）。出典に男女の区分の記載がないため、男子だけの値とは断定せず、男子の進路モデルの参考値として使う。ゲームでは一軍登録の日数を記録していないため、FA権の換算と同じ「一軍の1シーズン分の割合」×150日で数える（モデル上の換算）。',
   }),
   // the personal titles and big moments of an NPB 1軍 season (engine/titles.ts)
-  npbTitleLeaders: S({
-    id: 'npbTitleLeaders', value: 0, unit: '-', kind: 'measured', domain: 'baseball', sex: 'unstated',
-    population: 'NPB の1軍（セ・パ両リーグ）', definition: 'リーグ1位の成績（打率・本塁打・打点・盗塁・安打、勝利・防御率・奪三振）。2015〜2025年（120試合の2020年を除く）の10シーズン×2リーグ。ゲームでは、その年の成績を、所属リーグのどれか1シーズン（毎年1つ選ぶ）のリーグ1位の数字と比べ、並ぶか上回ればタイトルとする',
+  npbTitleRivals: S({
+    id: 'npbTitleRivals', value: 26.4, unit: '人', kind: 'measured', domain: 'baseball', sex: 'unstated',
+    population: 'NPB の1軍（セ・パ両リーグ）',
+    definition:
+      '1リーグ1シーズンで規定打席に届いた打者の数（平均26.4人）と、規定投球回に届いた投手の数（平均11.0人）。2015〜2025年（120試合の2020年を除く）の10シーズン×2リーグ。ゲームでは、毎年そのリーグのどれか1シーズンを選び、その人数の中で1位になればタイトルとする。競う相手の成績は、ゲームの通常モードの選手が1軍で残したシーズン（240万人生から集めたもの）',
     asOf: '2015〜2025年（2020年を除く）',
-    sourceIds: ['npbLeaders'], sourceType: 'primary', unverified: false,
-    verifyNote: '集計対象: NPB の1軍の各リーグの打者・投手（リーダーズのページ）。1位の数字は出典の各ページで確認（2026-11-11。選手名は保存していない）。1シーズンと比べてタイトルを決める方法は、ゲーム上のルール。',
+    sourceIds: ['npbQualify', 'npbLeaders'], sourceType: 'primary', unverified: false,
+    verifyNote:
+      '集計対象: NPB の1軍の各リーグで規定打席・規定投球回に届いた選手（個人打撃成績・個人投手成績のページの、規定以上の表の人数）。人数は出典の各ページで数えた（2026-11-16。選手名は保存していない）。相手の成績をゲームの選手から取ることと、1位の決め方は、ゲーム上のルール。',
   }),
   npbQualify: S({
     id: 'npbQualify', value: 3.1, unit: '-', kind: 'measured', domain: 'baseball', sex: 'unstated',
-    population: 'NPB の1軍', definition: '規定打席＝チーム試合数×3.1（143試合で443打席）、規定投球回＝チーム試合数×1.0（143回）。首位打者と最優秀防御率は、これに届いた選手だけが対象',
+    population: 'NPB の1軍',
+    definition:
+      '規定打席＝チーム試合数×3.1（143試合で443打席）、規定投球回＝チーム試合数×1.0（143回）。首位打者はこの規定打席に届いた選手だけが対象。ゲームの先発投手は実際より投げる回数が少ないため、最優秀防御率の規定投球回は、ゲームの先発ローテーションの投手のうち、実際の規定到達者の割合（11.0人÷6球団×6人）にあたる上位の投球回（117回）に置き換えている',
     asOf: '2025年',
     sourceIds: ['npbQualify'], sourceType: 'primary', unverified: false,
-    verifyNote: '集計対象: NPB の1軍の打者・投手（規定の算出方法）。出典の個人打撃成績・個人投手成績のページの記載で確認（2026-11-11）。',
+    verifyNote: '集計対象: NPB の1軍の打者・投手（規定の算出方法）。出典の個人打撃成績・個人投手成績のページの記載で確認（2026-11-11）。投手の規定をゲームの尺度に置き換える方法（6人の先発ローテーションを含む）は、ゲーム上のルール。',
   }),
   npbNoHitRate: S({
     id: 'npbNoHitRate', value: 12 / (10 * 143 * 12), unit: '割合', kind: 'estimate', domain: 'baseball', sex: 'unstated',
@@ -251,6 +256,15 @@ export const STATS: Record<string, Stat> = {
     asOf: '-',
     sourceIds: [], sourceType: 'none', unverified: true,
     verifyNote: NO_DATA + 'プロ野球選手の結婚相手の職業についての公式の統計はない。人物・番組・事務所はすべて架空。',
+  }),
+  coachSeasonModel: S({
+    id: 'coachSeasonModel', value: 0.58, unit: '割合', kind: 'assumption', domain: 'model', sex: 'male',
+    population: '引退後に監督を務める人（ゲーム内）',
+    definition:
+      '監督のチームのシーズンの決め方（ゲーム上のルール）。プロ：チームの力（年ごとに少しずつ変わる）と5球団との比較で順位を決め、勝率は1位.580〜6位.430。日本シリーズは1位が4回に3回、2位・3位が8回に1回ずつ進み、勝つのは半々。シーズン後に退く割合は1位3%〜6位45%（6年目から毎年4%ずつ増え、66歳で勇退）。高校：夏の甲子園は加盟校3,746校のうち49校、春のセンバツは32校の割合を、チームの力で増減させる（監督の年数・方針・勧誘・強豪校で上がる）。甲子園の1試合の勝率は45%前後。大学：6校のリーグ戦の順位と、優勝したときの全国大会。社会人：都市対抗に出るのはおよそ10チームに1つ',
+    asOf: '-',
+    sourceIds: [], sourceType: 'none', unverified: true,
+    verifyNote: NO_DATA + '甲子園の出場校数と加盟校数（jpKoshien、jpHsSchools）だけは実際の数字。チームや学校はすべて架空で、実在の球団・学校の成績ではない。',
   }),
   jpSalaryMean: S({
     id: 'jpSalaryMean', value: 5216, unit: '万円', kind: 'measured', domain: 'baseball', sex: 'unstated',

@@ -291,8 +291,10 @@ export function applyEffect(s: LifeState, e: Effect | undefined): void {
   if (e.fame) addFame(s, e.fame)
   if (e.career) startCareer(s, e.career)
   if (e.payScale) scalePay(s, e.payScale)
-  if (e.title && w && holdsJob(s)) {
-    w.title = e.title
+  // (the job held now: a career started by the same effect replaced the one read above)
+  const now = s.after?.work
+  if (e.title && now && holdsJob(s)) {
+    now.title = e.title
     s.job = e.title
   }
   if (e.position) s.person.position = positionAfter(s.person.position, e.position, s)

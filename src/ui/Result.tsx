@@ -19,6 +19,8 @@ import { hsCareerHr } from '../engine/games.ts'
 import { RecordsPanel } from './Records.tsx'
 import { PotentialRetro } from './PotentialPanels.tsx'
 import { ProYears } from './ProPanels.tsx'
+import { CoachYears } from './CoachPanel.tsx'
+import { coachingLine } from './coachingLine.ts'
 import { Panel } from './Panel.tsx'
 import { LifeMap, SurvivalCurve } from './Charts.tsx'
 import { ShareDialog } from './ShareDialog.tsx'
@@ -259,6 +261,16 @@ export function Result({ life, cohort, cohortProgress, onAgain, onTop }: Props) 
                 ].join(t('life.sep')) || '—'}
               </dd>
             </div>
+            {/* the teams he led after playing (engine/coaching.ts) */}
+            {coachingLine(life) && (
+              <div>
+                <dt>{t('res.coach')}</dt>
+                <dd>
+                  {coachingLine(life)}
+                  <small>{t('panel.gameRecord')}</small>
+                </dd>
+              </div>
+            )}
             <div>
               <dt>{t('res.hsHr')}</dt>
               <dd>
@@ -444,6 +456,7 @@ export function Result({ life, cohort, cohortProgress, onAgain, onTop }: Props) 
 
       <div className="ro ro-years">
         <ProYears life={life} fold />
+        <CoachYears life={life} fold />
       </div>
 
       <section className="panel ro ro-again">

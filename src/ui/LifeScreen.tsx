@@ -24,6 +24,7 @@ import { languageRows } from '../engine/language.ts'
 import { RecordsPanel } from './Records.tsx'
 import { PotentialPanel } from './PotentialPanels.tsx'
 import { MoneyBar, ProYears, StopDialog } from './ProPanels.tsx'
+import { CoachYears } from './CoachPanel.tsx'
 import { placeLabel, wishLabel } from '../engine/positionWish.ts'
 import { starOf } from '../engine/potential.ts'
 import { termsIn } from '../data/glossary.ts'
@@ -224,6 +225,7 @@ export function LifeScreen({ life, sim, cohort, cohortProgress, onDeath, onQuit,
           {life.pot && <PotentialPanel life={life} />}
           <RecordsPanel life={life} />
           {(life.career.salaryHist?.length ?? 0) > 0 && <ProYears life={life} />}
+          <CoachYears life={life} />
 
           <section className="panel statpanel">
             <h3>

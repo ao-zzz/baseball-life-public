@@ -26,7 +26,9 @@ vi.mock('./titles.ts', async (importOriginal) => {
 import { runHeadless, type Sim } from './life.ts'
 import { defaultParams } from './params.ts'
 import { hashSeed } from './rng.ts'
-import { HONOUR_ORDER, honourCounts, QUALIFY_OUTS, QUALIFY_PA } from './titles.ts'
+import { firstAmong, HONOUR_ORDER, honourCounts, QUALIFY_OUTS, QUALIFY_PA, shareBelow, SP_QUAL_OUTS } from './titles.ts'
+import leaders from '../data/npb-leaders.json' with { type: 'json' }
+import rivals from '../data/title-rivals.json' with { type: 'json' }
 import type { LifeConfig, LifeState } from './types.ts'
 
 const sim: Sim = { params: defaultParams(), headless: true }
@@ -71,7 +73,8 @@ describe('titles and big moments of an NPB season', () => {
         const line = rows.find((t) => t.age === h.age && t.level === 'pro')?.line
         expect(line?.games).toBeGreaterThan(0)
         if (h.id === 'avg') expect(line!.pa).toBeGreaterThanOrEqual(QUALIFY_PA)
-        if (h.id === 'era') expect(line!.outs).toBeGreaterThanOrEqual(QUALIFY_OUTS)
+        // (the ERA title's 規定投球回 is the game's own scale: SP_QUAL_OUTS, below NPB's 143 innings)
+        if (h.id === 'era') expect(line!.outs).toBeGreaterThanOrEqual(SP_QUAL_OUTS)
         if (h.id === 'nohit' || h.id === 'perfect' || h.id === 'w' || h.id === 'era' || h.id === 'k') expect(s.person.position).toBe('P')
         if (['avg', 'hr', 'rbi', 'sb', 'h'].includes(h.id)) expect(s.person.position).not.toBe('P')
       }
@@ -85,6 +88,36 @@ describe('titles and big moments of an NPB season', () => {
     // the common ones are met (the rare titles are measured by scripts/titlestats.ts)
     for (const id of ['jseries', 'champion', 'allstar', 'best9', 'w'] as const) expect(seen.has(id)).toBe(true)
     expect([...seen].every((id) => (HONOUR_ORDER as string[]).includes(id))).toBe(true)
+  })
+
+  it('a title is first place among the league’s qualified players: one in K over the rivals themselves (2026-11-16)', () => {
+    // the real numbers of qualified players: every season of both leagues, in the range of NPB's tables
+    expect(leaders.rows).toHaveLength(20)
+    for (const r of leaders.rows) {
+      expect(r.qualB).toBeGreaterThanOrEqual(15)
+      expect(r.qualB).toBeLessThanOrEqual(40)
+      expect(r.qualP).toBeGreaterThanOrEqual(4)
+      expect(r.qualP).toBeLessThanOrEqual(20)
+    }
+    // the rivals: enough seasons of the game's players, and the game's 規定投球回 below NPB's
+    expect(rivals.meta.seasons.bat).toBeGreaterThan(1000)
+    expect(rivals.meta.seasons.sp).toBeGreaterThan(300)
+    expect(SP_QUAL_OUTS).toBeGreaterThan(200)
+    expect(SP_QUAL_OUTS).toBeLessThan(QUALIFY_OUTS)
+    // over the pool itself, F(x)^(K−1) averages about 1/K (ties counted half), and a better season has the better chance
+    const pools = rivals.pools as unknown as Record<string, Record<string, [number, number][]>>
+    for (const [pool, stat, k, lower] of [['bat', 'hr', 26, false], ['bat', 'avg', 26, false], ['sp', 'w', 11, false], ['sp', 'era', 11, true]] as const) {
+      const h = pools[pool][stat]
+      const n = h.reduce((a, [, c]) => a + c, 0)
+      const mean = h.reduce((a, [v, c]) => a + c * firstAmong(pool, stat, v, k, lower), 0) / n
+      expect(mean, `${pool}.${stat}`).toBeGreaterThan(0.4 / k)
+      expect(mean, `${pool}.${stat}`).toBeLessThan(1.6 / k)
+      const [lo, hi] = lower ? [h.at(-1)![0], h[0][0]] : [h[0][0], h.at(-1)![0]]
+      expect(firstAmong(pool, stat, hi, k, lower)).toBeGreaterThan(firstAmong(pool, stat, lo, k, lower))
+    }
+    expect(shareBelow([[1, 1], [2, 2], [3, 1]], 2)).toBeCloseTo(0.5)
+    expect(shareBelow([[1, 1], [2, 2], [3, 1]], 2, true)).toBeCloseTo(0.5)
+    expect(shareBelow([[1, 1], [2, 2], [3, 1]], 3)).toBeCloseTo(0.875)
   })
 
   it('are an NPB player’s only: none in the lives of the other countries', () => {

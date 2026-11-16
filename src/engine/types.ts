@@ -386,6 +386,32 @@ export interface LifeStatus {
   knowledge: number
 }
 
+/** the level of a team he leads: an NPB club, a high school, a university, a company team */
+export type CoachLevel = 'pro' | 'hs' | 'univ' | 'corp'
+
+/** one season of a team he led as its manager (engine/coaching.ts; every figure is the game's) */
+export interface CoachSeason {
+  age: number
+  level: CoachLevel
+  /** an NPB club: the place in the league (1–6), the wins, losses and ties */
+  finish?: number
+  w?: number
+  l?: number
+  d?: number
+  /** how far the season went: 'league' リーグ優勝, 'series' 日本シリーズ, 'champion' 日本一, 'koshien' 甲子園 … (coaching.ts RESULT) */
+  result?: string
+  /** a tournament's rounds won (the summer's prefectural rounds, or the national ones when result says so) */
+  wins?: number
+  /** a high school chosen for the spring's センバツ: its wins there */
+  spring?: number
+}
+
+export interface CoachingRecord {
+  /** the strength of the NPB club he manages (a random walk, coaching.ts proSeasonOf) */
+  st?: number
+  seasons: CoachSeason[]
+}
+
 export interface LifeState {
   v: 1
   config: LifeConfig
@@ -402,6 +428,8 @@ export interface LifeState {
   money: number // 万円, savings
   /** how widely he is known, 0–100 (careers.ts fameOf: absent = from the baseball career; events change it with Effect.fame) */
   fame?: number
+  /** the teams he led after playing, season by season (engine/coaching.ts); absent until he leads one */
+  coaching?: CoachingRecord
   /** the licence his university leads to (license.ts): passed when ok is set, the national exam taken tries times */
   license?: { kind: LicenseKind; ok?: number; tries?: number }
   income: number // 万円, this year

@@ -123,7 +123,7 @@ export function indepSeason(c: EventCtx, n: number) {
 
 // ---------------------------------------------------------------- pro: 2軍 and 1軍
 
-type ProType = 'batter' | 'starter' | 'reliever'
+export type ProType = 'batter' | 'starter' | 'reliever'
 
 /** games in a season for a player who plays the whole of it at that level (game settings, stat seasonModel) */
 export const PRO_GAMES: Record<'first' | 'farm', Record<ProType, number>> = {

@@ -213,19 +213,20 @@ export const STAT_EN: Record<string, StatEn> = {
     asOf: OLD_EDITION_RULE,
     verifyNote: `Counted: NPB main-roster players (table on p.5 of the material of ${JPBPA} (2022 edition)). The {yen~:16000000} and 150-day formula and the definition were confirmed in the source (2026-10-22). The material is the 2022 edition, and the rules for 2025 and 2026 have not been confirmed (the text of the Baseball Agreement itself is not public). The source gives no breakdown by sex, so it is not asserted to be a value for males only; it is used as a reference value for the male career model. The game does not record days registered on the first team, so it counts them as “the share of one first-team season” × 150 days, the same as its conversion for FA rights (a model conversion).`,
   },
-  npbTitleLeaders: {
+  npbTitleRivals: {
     population: 'NPB first teams (Central and Pacific Leagues)',
     definition:
-      'The league leaders’ figures (batting average, home runs, RBIs, stolen bases, hits; wins, ERA, strikeouts): 10 seasons of 2015–2025 (without the 120-game 2020) × 2 leagues. The game compares the year’s stats with the leaders of one season of his league (one drawn each year); equalling or passing a leader’s figure wins the title',
+      'The number of batters who reached the qualifying plate appearances in one league and season (26.4 on average) and of pitchers who reached the qualifying innings (11.0 on average): 10 seasons of 2015–2025 (without the 120-game 2020) × 2 leagues. Each year the game picks one season of his league and gives the title to the player who comes first among that many. The rivals’ stats are seasons that the game’s own players of the normal mode played on a first team (collected from 2.4 million lives)',
     asOf: '2015–2025 (without 2020)',
-    verifyNote: 'Counted: the batters and pitchers of each NPB first-team league (the leaders’ pages). The leaders’ figures were confirmed on each page of the source (2026-11-11; no player names are kept). Deciding a title against one season is the game’s own rule.',
+    verifyNote:
+      'Counted: the players of each NPB first-team league who reached the qualifying plate appearances or innings (the number of players in the qualified table of the individual batting and pitching pages). The numbers were counted on each page of the source (2026-11-16; no player names are kept). Taking the rivals’ stats from the game’s players and the way first place is decided are the game’s own rules.',
   },
   npbQualify: {
     population: 'NPB first teams',
     definition:
-      'Qualifying plate appearances = team games × 3.1 (443 in 143 games); qualifying innings = team games × 1.0 (143). Only players who reach them can win the batting title or the ERA title',
+      'Qualifying plate appearances = team games × 3.1 (443 in 143 games); qualifying innings = team games × 1.0 (143). Only batters with these plate appearances can win the batting title. The game’s starters pitch fewer innings than real ones, so for the ERA title the qualifying innings are replaced by the innings of the top share of the game’s rotation pitchers that the real qualified pitchers are of a league’s rotation (11.0 ÷ 6 clubs × 6 starters): 117 innings',
     asOf: '2025',
-    verifyNote: 'Counted: NPB first-team batters and pitchers (how the qualification is computed). Confirmed in the text of the source’s batting and pitching pages (2026-11-11).',
+    verifyNote: 'Counted: NPB first-team batters and pitchers (how the qualification is computed). Confirmed in the text of the source’s batting and pitching pages (2026-11-11). Putting the pitchers’ qualification on the game’s scale (with a six-man rotation) is the game’s own rule.',
   },
   npbNoHitRate: {
     population: 'NPB first-team starts',
@@ -265,6 +266,13 @@ export const STAT_EN: Record<string, StatEn> = {
       'The share of announcers, TV personalities, idols, models and actresses among the people he meets (the game’s rule): 10% for a player who has played on a first team, 5% more each for 8 years on a first team and for the majors, and 8% for each title so far (MVP 10%; Best Nine, Rookie of the Year, a no-hitter and a Japan Series title 4%; the All-Star game 2%), up to 50%. A player with titles meets people up to twice as often, and his chance of a first date rises by up to 20 points',
     asOf: '-',
     verifyNote: `${NO_DATA} There are no official statistics on the work of pro players’ wives. Every person, programme and agency is fictional.`,
+  },
+  coachSeasonModel: {
+    population: 'Men who manage a team after playing (in the game)',
+    definition:
+      'How the season of a team he manages is decided (the game’s rule). NPB: the place comes from the club’s strength (which changes a little each year) against five clubs, and the share of wins runs from .580 for the first to .430 for the sixth. The first club reaches the Japan Series three times in four, the second and the third one time in eight each, and wins it half the time. The chance he leaves after a season runs from 3% for the first to 45% for the sixth (4% more each year from the sixth year; at 66 he retires). High school: the share of summer Koshien (49 of the 3,746 schools) and of spring Koshien (32), raised or lowered by the team’s strength (his years, his method, recruiting, a strong private school); a Koshien game is won about 45% of the time. University: the place in a league of six, and the national championship for the champion. Company team: about one team in ten plays the Intercity Baseball Tournament',
+    asOf: '-',
+    verifyNote: `${NO_DATA} Only the number of Koshien places and of high schools (jpKoshien, jpHsSchools) are real figures. Every team and school is fictional; these are not the records of real clubs or schools.`,
   },
   jpSalaryMean: {
     population: SALARY_713,
@@ -943,10 +951,11 @@ export const SOURCE_EN: Record<string, SourceEn> = {
       'On the batting and pitching pages of both leagues for each season (without 2020; the year and league changed in the URL), confirmed the first-place figures of batting average, home runs, RBIs, stolen bases, hits, wins, ERA and strikeouts.',
   },
   npbQualify: {
-    title: 'Individual batting (qualified) and pitching (qualified), 2025',
-    original: '個人打撃成績（規定打席以上）・個人投手成績（規定投球回以上）2025年度',
+    title: 'Individual batting (qualified) and pitching (qualified), 2015–2025',
+    original: '個人打撃成績（規定打席以上）・個人投手成績（規定投球回以上）2015〜2025年度',
     publisher: 'NPB',
-    checkNote: 'Confirmed “qualifying plate appearances: team games × 3.1 (rounded)” and, on the pitching page, “qualifying innings: team games × 1.0”.',
+    checkNote:
+      'Confirmed “qualifying plate appearances: team games × 3.1 (rounded)” and, on the pitching page, “qualifying innings: team games × 1.0”. On the pages of both leagues for each season (without 2020; the year and league changed in the URL, pit_c.html for the pitchers), counted the players listed in the qualified table (26.4 batters and 11.0 pitchers on average).',
   },
   npbNoHitters: {
     title: 'Record holders: no-hit, no-run games',

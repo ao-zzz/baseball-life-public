@@ -141,11 +141,12 @@ export const SOURCES: Record<string, Source> = {
   },
   npbQualify: {
     id: 'npbQualify',
-    title: '個人打撃成績（規定打席以上）・個人投手成績（規定投球回以上）2025年度',
+    title: '個人打撃成績（規定打席以上）・個人投手成績（規定投球回以上）2015〜2025年度',
     publisher: 'NPB',
     url: 'https://npb.jp/bis/2025/stats/bat_c.html',
-    accessed: '2026-11-11',
-    checkNote: '「規定打席：チーム試合数×3.1（端数は四捨五入）」と、投手成績のページの「規定投球回：チーム試合数×1.0」を確認。',
+    accessed: '2026-11-16',
+    checkNote:
+      '「規定打席：チーム試合数×3.1（端数は四捨五入）」と、投手成績のページの「規定投球回：チーム試合数×1.0」を確認。各年度（2020年を除く）のセ・パ両リーグのページ（URL の年とリーグを変えたもの、投手は pit_c.html）で、規定以上の表に載っている人数を数えた（打者は平均26.4人、投手は平均11.0人）。',
   },
   npbNoHitters: {
     id: 'npbNoHitters',

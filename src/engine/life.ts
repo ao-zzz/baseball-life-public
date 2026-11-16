@@ -56,6 +56,7 @@ import { fallTournament, hsPrefecture, practiceGames, springNationals, springTou
 import { hsCareerHr, lineAt } from './games.ts'
 import { SCOUT_VISIT, TEAM_AFTER_HS, companySeason, indepSeason, mlbSeason, proSeason, proType, scoutPerf, univHalf, univPractice } from './careerSeason.ts'
 import { seasonHonours } from './titles.ts'
+import { COACHING_EVENTS, runCoachingPass } from './coaching.ts'
 import { AFTER_EVENTS } from './afterEvents.ts'
 import { LIFE_LOVE_EVENTS } from './lifeLoveEvents.ts'
 import { LIFE_ABROAD_EVENTS } from './lifeAbroadEvents.ts'
@@ -113,6 +114,8 @@ EVENTS.register(PUBLIC_SPECS.map(compileSpec))
 // the event packs (src/engine/packs): registered so that their questions can be answered; drawn only by their own pass (packYear),
 // never by the passes above (events.ts leaves out an event with a pack)
 EVENTS.register(PACK_EVENTS)
+// the coach's road after playing (coaching.ts): drawn only by its own pass (runCoachingPass), like the packs
+EVENTS.register(COACHING_EVENTS)
 
 // Japan pipeline (PROJECT_PLAN §6.3). Male players only (§2-4). All texts are original.
 // Engine functions mutate the LifeState they are given; the UI passes a copy.
@@ -349,6 +352,20 @@ export class YearCtx {
     this.s.pending = { id: decision.id, data }
   }
 
+  /**
+   * a question that is asked this year whatever the yearly limit, behind any question already there (coaching.ts: the offer of the
+   * year a first-team player retires, once in a life, when the year after baseball is already full of questions). It takes no room
+   * from the others: none of them is dropped, and alone in its year it comes at the end, like askLast.
+   */
+  askAlways(decision: Decision, data: Record<string, number | boolean | string> = {}) {
+    if (this.decision) {
+      ;(this.s.queue ??= []).push({ id: decision.id, data, decision })
+      return
+    }
+    this.decision = { at: 0.97, decision }
+    this.s.pending = { id: decision.id, data }
+  }
+
   /** a context for catalog events: their own random stream, so career draws stay as calibrated */
   eventCtx(salt = 0): EventCtx {
     const rng = eventRng(this.s, salt)
@@ -358,6 +375,7 @@ export class YearCtx {
       headless: !!this.sim.headless,
       add: (kind, text, opts) => this.add(kind, text, opts, rng),
       ask: (decision, data) => this.queueAsk(decision, data),
+      askAlways: (decision, data) => this.askAlways(decision, data),
       canAsk: () => this.canAsk(),
     }
   }
@@ -549,6 +567,8 @@ function yearEvents(y: YearCtx) {
   runLifePass(EVENTS, y.eventCtx(0x11fe))
   // daily life of the country he lives in, whichever country he was born in (own stream; PROJECT_PLAN §11.37)
   runResidentPass(EVENTS, y.eventCtx(0x2e51))
+  // the coach's road after playing: the offer of the year he retires, the seasons and scenes of a coach (own stream; coaching.ts)
+  runCoachingPass(EVENTS, y.eventCtx(0xc0ac))
 }
 
 /**

@@ -27,9 +27,10 @@ const front = is('frontOffice')
 /** the club staff post a released NPB player is given (life.ts assignSecondCareer, after.ts bbstaff) */
 const clubStaff = (s: LifeState) => holdsJob(s) && s.after!.work!.title.startsWith('球団スタッフ')
 const teacher = (s: LifeState) => holdsJob(s) && s.after!.work!.title === '教員'
-/** he leads a high school team: as a coach of careers.ts, or as the teacher who took the team */
+/** he leads a high school team: as a coach of careers.ts, or as the teacher who took the team (not after a move to a university or a company team: coaching.ts) */
 const coachingHs = (s: LifeState) =>
-  (coach(s) && hasFlag(s, 'bbc.amCoach') && !hasFlag(s, 'bbc.proCoach') && !hasFlag(s, 'bbc.indepCoach')) || (hasFlag(s, 'bbc.teacherCoach') && sameJobSince(s, 'bbc.teacherCoach'))
+  (coach(s) && hasFlag(s, 'bbc.amCoach') && !['bbc.proCoach', 'bbc.indepCoach', 'bbc.univCoach', 'bbc.corpCoach'].some((f) => hasFlag(s, f))) ||
+  (hasFlag(s, 'bbc.teacherCoach') && sameJobSince(s, 'bbc.teacherCoach'))
 const coachedOnce = (s: LifeState) => ['bbc.amCoach', 'bbc.proCoach', 'bbc.indepCoach', 'bbc.teacherCoach'].some((f) => hasFlag(s, f))
 
 export const BASEBALL_CAREER: EventSpec[] = [
@@ -311,18 +312,17 @@ export const BASEBALL_CAREER: EventSpec[] = [
     category: 'bbCoach',
     stages: ['adult'],
     when: coachingHs,
+    // (the summers that follow are the seasons of coaching.ts: the prefectural rounds, Koshien and its rounds, every year)
     outcomes: [
       {
         weight: 2,
         text: '最初の夏、部員の名前と癖をすべて覚え、ノックの一本一本に声をかけるうち、チームの目つきが変わってきました。',
         effects: { sat: 4, happy: 3 },
-        follow: [{ id: 'x.bbc.koshienRun', after: 2, within: 3 }],
       },
       {
         weight: 1,
         text: '練習の方針をめぐって保護者と意見がぶつかり、最初の一年は話し合いの場ばかりが増えました。',
         effects: { sat: -4, happy: -2, rel: -2 },
-        follow: [{ id: 'x.bbc.koshienRun', after: 3, within: 3 }],
       },
     ],
   },
@@ -362,26 +362,6 @@ export const BASEBALL_CAREER: EventSpec[] = [
       { label: '去年までのやり方を続ける', flag: 'bbc.method', outcomes: [{ text: '大きくは変えず、前の年と同じメニューで新しいチームを始めました。' }] },
     ],
   },
-  {
-    ...XF,
-    id: 'x.bbc.koshienRun',
-    category: 'bbCoach',
-    stages: ['adult'],
-    when: coachingHs,
-    outcomes: [
-      {
-        // (rare: one of the some 3,400 schools of each summer; a method he chose himself lifts it a little; an assumption)
-        weight: (s) => 0.08 + (hasFlag(s, 'bbc.strict') || hasFlag(s, 'bbc.free') ? 0.04 : 0),
-        kind: 'big',
-        key: true,
-        text: '夏の県大会を勝ち抜き、監督として甲子園の土を踏みました。ベンチから見る景色は、選手のころとまるで違いました。',
-        effects: { achieve: '監督として甲子園', fame: 6, happy: 10, sat: 6 },
-      },
-      { weight: 1.2, text: '夏の県大会では準々決勝まで勝ち進み、地元の新聞に、監督としての談話が小さく載りました。', effects: { sat: 3, happy: 3 } },
-      { weight: 1, text: '夏は初戦で敗れ、泣き崩れる三年生にかける言葉が、なかなか見つかりませんでした。', effects: { happy: -3, sat: -2 } },
-    ],
-  },
-
   // ================================================================ 指導者 (coach): the pros, the manager's chair
   {
     ...X,
@@ -432,7 +412,7 @@ export const BASEBALL_CAREER: EventSpec[] = [
         effects: { sat: 5, payScale: 1.2, fame: 3, flag: 'bbc.coachGood' },
         follow: [{ id: 'x.bbc.managerCall', after: 3, within: 5 }],
       },
-      { weight: 1.2, text: '担当した選手の成績が上がり、翌年は一軍のコーチに昇格しました。', effects: { sat: 4, payScale: 1.1 } },
+      { weight: 1.2, text: '担当した選手の成績が上がり、翌年は一軍のコーチに昇格しました。', effects: { sat: 4, payScale: 1.1, title: '一軍コーチ' } },
       { weight: 1, text: 'チームの低迷の責任を問われる形で、二軍の巡回コーチに配置換えとなりました。', effects: { sat: -4, happy: -2 } },
     ],
   },
@@ -451,29 +431,12 @@ export const BASEBALL_CAREER: EventSpec[] = [
         label: '監督を引き受ける',
         hint: '年俸は跳ね上がる。負ければ一年で終わる',
         flag: 'bbc.manager',
-        effects: { achieve: 'プロ野球の監督', fame: 10, payScale: 2.5 },
-        outcomes: [{ follow: [{ id: 'x.bbc.managerSeason', after: 1, within: 2 }], kind: 'big', key: true, text: '就任会見で新しい背番号のユニフォームに袖を通し、一斉にフラッシュを浴びました。' }],
+        // (his seasons as the manager, one a year from the next: coaching.ts)
+        effects: { achieve: 'プロ野球の監督', fame: 10, payScale: 2.5, title: '監督' },
+        outcomes: [{ kind: 'big', key: true, text: '就任会見で新しい背番号のユニフォームに袖を通し、一斉にフラッシュを浴びました。' }],
       },
       { label: 'ヘッドコーチとして支える', effects: { payScale: 1.3, sat: 3 }, outcomes: [{ text: '監督の座は別の人に譲り、自分は参謀として作戦を支える立場を選びました。' }] },
       { label: '今の持ち場に残る', flag: 'bbc.managerPass', outcomes: [{ text: '身に余る話だと辞退し、若手を育てる今の仕事を続けました。' }] },
-    ],
-  },
-  {
-    ...XF,
-    id: 'x.bbc.managerSeason',
-    category: 'bbCoach',
-    stages: ['adult'],
-    when: (s) => coach(s) && hasFlag(s, 'bbc.manager'),
-    outcomes: [
-      { weight: 0.25, kind: 'big', key: true, text: '采配がかみ合い、就任一年目でリーグ優勝を果たしました。胴上げで、夜空が何度も近づきました。', effects: { achieve: '監督としてリーグ優勝', fame: 10, happy: 12, payScale: 1.2 } },
-      { weight: 1, text: 'チームは最後まで上位争いに加わり、球団から契約を二年延長されました。', effects: { sat: 5, payScale: 1.1 } },
-      {
-        weight: 0.8,
-        kind: 'bad',
-        text: '連敗が止まらずに最下位へ沈み、シーズンの終わりとともに、責任を取って監督を退きました。',
-        effects: { job: 'quit', happy: -6, fame: -3, flag: 'bbc.leftBench' },
-        follow: [{ id: 'x.bbc.afterBench', after: 1, within: 2 }],
-      },
     ],
   },
   {

@@ -1,7 +1,9 @@
 // Imports the league leaders' figures of NPB's 1軍, 2015–2025 without 2020 (the 120-game season; every other year has 143 games),
 // from 日本野球機構's 「リーダーズ」 pages (https://npb.jp/bis/YYYY/stats/llb_c.html: batting, llp_c.html: pitching; _p for the
-// Pacific League): the first-place value of 打率・本塁打・打点・盗塁・安打 and 勝利・防御率・奪三振. Only the values are kept (no
-// player names). The personal titles of the game (engine/titles.ts) compare a season with these. One request a second.
+// Pacific League): the first-place value of 打率・本塁打・打点・盗塁・安打 and 勝利・防御率・奪三振. And
+// the number of players who reached the 規定打席 and the 規定投球回 (the rows of 個人打撃成績 / 個人投手成績, bat_c.html and
+// pit_c.html: those pages list only the qualified players). Only the values and the counts are kept (no player names). The
+// personal titles of the game (engine/titles.ts) are won against that many rivals. One request a second.
 // Writes src/data/npb-leaders.json. Run: node scripts/ingest-npb-leaders.ts
 import { createHash } from 'node:crypto'
 import { writeFileSync } from 'node:fs'
@@ -13,6 +15,11 @@ const YEARS = [2015, 2016, 2017, 2018, 2019, 2021, 2022, 2023, 2024, 2025]
 const PAGES = [
   { page: 'llb', keys: { lb_avg: 'avg', lb_hr: 'hr', lb_rbi: 'rbi', lb_sb: 'sb', lb_h: 'h' } },
   { page: 'llp', keys: { lp_w: 'w', lp_era: 'era', lp_so: 'k' } },
+] as const
+// the pages of the qualified players: one row (<tr class="ststats">) a player
+const QUALIFIED = [
+  { page: 'bat', key: 'qualB' },
+  { page: 'pit', key: 'qualP' },
 ] as const
 
 /**
@@ -48,6 +55,21 @@ for (const year of YEARS) {
         row[key] = v
       }
       console.log(year, league, p.page, res.status)
+      await new Promise((r) => setTimeout(r, 1000))
+    }
+    for (const p of QUALIFIED) {
+      const url = `https://npb.jp/bis/${year}/stats/${p.page}_${league}.html`
+      const res = await fetch(url, { headers: { 'User-Agent': UA } })
+      const html = await res.text()
+      hash.update(html)
+      // (the first table only: the pitchers' page goes on with the top ten of saves and of hold points, under headings of their own)
+      // (the heading is an h2 up to 2024 and an h4 / h5 in the layout of 2025; the table ends at its own </table>)
+      const from = html.search(/<h[2-5][^>]*>[^<]*規定(打席|投球回)以上[^<]*<\/h[2-5]>/)
+      const to = from < 0 ? -1 : html.indexOf('</table>', from)
+      const n = from < 0 || to < 0 ? 0 : (html.slice(from, to).match(/<tr class="ststats">/g)?.length ?? 0)
+      if (n < 3) throw new Error(`${url}: no list of qualified players (${n} rows)`)
+      row[p.key] = n
+      console.log(year, league, p.page, res.status, n)
       await new Promise((r) => setTimeout(r, 1000))
     }
     rows.push(row)

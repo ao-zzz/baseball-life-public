@@ -41,6 +41,8 @@ export interface EventCtx {
   add(kind: LogKind, text: string, opts?: EventAddOpts): void
   /** open a decision (queued after any other decision of the year); its outcome is handled by `resolve` */
   ask(decision: Decision, data?: Record<string, number | boolean | string>): void
+  /** open a decision whatever the yearly limit, behind the others (life.ts YearCtx.askAlways; absent: as `ask`) */
+  askAlways?(decision: Decision, data?: Record<string, number | boolean | string>): void
   /** whether another decision fits in this year */
   canAsk(): boolean
 }

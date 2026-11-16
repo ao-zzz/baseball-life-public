@@ -5,6 +5,14 @@ import { moneyTokens } from './currency.ts'
 // in Japanese has no translation until one is written here (the tests list it), and is shown in Japanese until then.
 
 const EN: Record<string, string> = {
+  'タイトルを、リーグで規定に届いた選手の中で1位になれたかで決めるように変えました。競う人数は実際のNPBの規定到達者の数（打者は平均26人、投手は11人）で、相手の成績はゲームの選手のものです。ほとんど取れなかった本塁打王・盗塁王・最優秀防御率も取れるようになり、☆10の選手が取るタイトルの数はおよそ2倍になりました。':
+    'A title now goes to the player who comes first among the league’s qualified players. How many compete is the real number of NPB’s qualified players (26 batters and 11 pitchers on average); the rivals’ stats are those of the game’s players. The home run, stolen base and ERA titles, almost never won before, can now be won, and a ★10 player wins about twice as many titles.',
+  '1軍でプレーした選手が引退するとき、二軍のコーチとして球団に残るか、母校の高校の監督になるかを選べるようにしました。':
+    'When a player who played on a first team retires, he can now stay with the club as a farm-team coach or go back to his old high school as its manager.',
+  'コーチになると、若手の指導、一軍コーチ・ヘッドコーチへの昇格、他球団からの誘い、日本代表のコーチなどの出来事がほぼ毎年起きます。監督になると、毎年の順位と勝敗、日本シリーズ、退任までが記録に残ります。':
+    'As a coach, something happens almost every year: teaching young players, a move up to first-team coach or head coach, an offer from another club, coaching Japan’s national team. As a manager, each season’s place and record, the Japan Series and the day he leaves the bench go into the record.',
+  '高校の監督は春のセンバツと夏の県大会・甲子園を、大学の監督は全国大会を、社会人の監督は都市対抗を戦います。監督としての成績は、結果画面と年ごとの表に表示されます。チームの成績はゲーム上の仮定です（甲子園の出場校数などは実際の数字）。':
+    'A high school manager plays spring Koshien and the summer’s prefectural tournament and Koshien; a university manager the national championship; a company team’s manager the Intercity Baseball Tournament. His record as a manager is shown on the result screen and in a year-by-year table. The teams’ results are game assumptions (the number of Koshien places and the like are real).',
   'プロで1軍に出ると、出会う相手にアナウンサー・タレント・アイドル・モデル・女優が混ざるようにしました。タイトルや受賞が多いほど割合が上がり（最大5割）、出会いの場面も増え、食事に誘ったときに付き合える確率も上がります。割合はゲーム上の仮定です。':
     'Once he plays on an NPB first team, the people he meets now include announcers, TV personalities, idols, models and actresses. The more titles and awards he wins, the larger their share (up to half), the more often he meets people, and the likelier a first date. The shares are game assumptions.',
   'その相手と付き合うと熱愛報道がスポーツ紙の一面に載り、結婚すると会見の様子が人生の記録に残ります。結果画面の家族の欄に、妻の職業を表示します。':

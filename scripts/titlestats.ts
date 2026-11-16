@@ -1,10 +1,12 @@
-// The 1軍 seasons of NPB players against the real league leaders (src/data/npb-leaders.json): how high the game's seasons go, and how
-// often a season would reach a leader's figure (the personal titles, engine/titles.ts). Over おまかせ lives (the fingerprint's seeds).
+// The 1軍 seasons of NPB players against the real league leaders (src/data/npb-leaders.json): how high the game's seasons go, how
+// often a season would reach a leader's figure (the rule of the titles until 2026-11-16), and what the game gives now (engine/titles.ts:
+// first among the league's qualified players). Over おまかせ lives (the fingerprint's seeds).
 // Run: N=20000 node scripts/titlestats.ts   (STARS=10: potential-mode lives of that ★)
 import { createLife, endYear, isPlaying, planYear, resolveDecision, type Sim } from '../src/engine/life.ts'
 import { defaultParams } from '../src/engine/params.ts'
 import { hashSeed } from '../src/engine/rng.ts'
 import type { StatLine } from '../src/engine/types.ts'
+import { STAT_TITLES } from '../src/engine/titles.ts'
 import leaders from '../src/data/npb-leaders.json' with { type: 'json' }
 
 const N = Number(process.env.N ?? 20000)
@@ -14,6 +16,9 @@ const bat: StatLine[] = []
 const pit: StatLine[] = []
 let lives = 0
 let livesWith = 0
+/** lives with one stat title or more, and with three or more */
+let livesTitle = 0
+let livesTitle3 = 0
 const won = new Map<string, number>()
 for (let i = 0; i < N; i++) {
   const s = createLife({ seed: hashSeed(i + 4_000_000), country: 'JP', pace: 'p15', ...(STARS ? { mode: 'potential' as const, stars: STARS } : {}) })
@@ -28,6 +33,9 @@ for (let i = 0; i < N; i++) {
   for (const t of rows) (s.person.position === 'P' ? pit : bat).push(t.line!)
   for (const h of s.bb?.rec?.honours ?? []) won.set(h.id, (won.get(h.id) ?? 0) + 1)
   if (s.bb?.rec?.honours?.length) livesWith++
+  const t = (s.bb?.rec?.honours ?? []).filter((h) => STAT_TITLES.includes(h.id)).length
+  if (t >= 1) livesTitle++
+  if (t >= 3) livesTitle3++
 }
 const L = leaders.rows
 const share = (f: (r: (typeof L)[number]) => boolean) => L.filter(f).length / L.length
@@ -63,6 +71,7 @@ const P = {
 for (const [k, v] of Object.entries(P)) console.log(`${k}: ${pct(v)} of the seasons`)
 // what the game gave (Records.honours): per 1軍 season of that kind of player, and lives with any
 console.log(`lives with an honour: ${livesWith} (${pct(livesWith / Math.max(1, lives))} of the lives with 1軍 seasons)`)
+console.log(`lives with a stat title: ${livesTitle} (${pct(livesTitle / Math.max(1, lives))}), with three or more: ${livesTitle3} (${pct(livesTitle3 / Math.max(1, lives))})`)
 const PITCHING = new Set(['w', 'era', 'k', 'nohit', 'perfect'])
 for (const [id, n] of [...won].sort((a, b) => b[1] - a[1])) {
   const base = PITCHING.has(id) ? pit.length : ['avg', 'hr', 'rbi', 'sb', 'h'].includes(id) ? bat.length : bat.length + pit.length
