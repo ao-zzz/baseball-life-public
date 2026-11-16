@@ -21,6 +21,11 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    version: '1.10.1',
+    date: '2026-11-16',
+    changes: ['コーチや監督などの仕事をしているのに、会社員の昇進（主任・係長など）や、取引先とのやりとりの出来事が出る不具合を直しました。'],
+  },
+  {
     version: '1.10.0',
     date: '2026-11-16',
     changes: [

@@ -19,6 +19,13 @@ import { graduationAge } from './license.ts'
 const A = (s: LifeState) => ensureAfter(s)
 const notPlaying = (s: LifeState) => !['youth', 'jhs', 'hs', 'univ', 'company', 'indep', 'proMinor', 'pro', 'abroad'].includes(s.career.phase)
 const working = (s: LifeState) => !!s.after?.work && !s.after.retired
+/**
+ * the work of a company or an office: not one of the careers of careers.ts that have their own steps (a coach becomes a first-team
+ * coach or a manager, not 係長; feedback 2026-11-16). The licensed careers (doctor, nurse …) are left as they were: the job offers
+ * give them on the おまかせ path, and a change there would move the calibrated lives. The other careers start only on a choice.
+ */
+const LICENSED = ['doctor', 'dentist', 'pharmacist', 'nurse']
+const officeWork = (s: LifeState) => !s.after?.work?.kind || LICENSED.includes(s.after.work.kind)
 const played = (s: LifeState) => s.career.highestRank > 0
 const flag = (s: LifeState, f: string) => s.taken.includes(f)
 const setFlag = (s: LifeState, f: string) => {
@@ -168,7 +175,7 @@ export const AFTER_EVENTS: EventDef[] = [
     id: 'work.promotion',
     category: 'career',
     stages: ['adult'],
-    when: (s) => working(s) && s.after!.work!.regular && s.after!.work!.employer !== 'self' && s.after!.work!.level < 4 && s.after!.work!.years >= 3 + s.after!.work!.level * 4,
+    when: (s) => working(s) && officeWork(s) && s.after!.work!.regular && s.after!.work!.employer !== 'self' && s.after!.work!.level < 4 && s.after!.work!.years >= 3 + s.after!.work!.level * 4,
     weight: (s) => clamp(0.8 + (s.status.relations - 50) / 50 + (s.status.knowledge - 50) / 80 + (s.career.achievements.includes('主将') ? 0.3 : 0), 0.2, 3),
     cooldown: 3,
     maxPerLife: 4,
@@ -475,7 +482,7 @@ export const AFTER_EVENTS: EventDef[] = [
     id: 'work.project',
     category: 'career',
     stages: ['adult'],
-    when: (s) => employed(s) && s.after!.work!.years >= 2,
+    when: (s) => employed(s) && officeWork(s) && s.after!.work!.years >= 2,
     weight: 1,
     cooldown: 4,
     maxPerLife: 4,

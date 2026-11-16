@@ -17,6 +17,7 @@ import { createLife, endYear, EVENTS, planYear, resolveDecision, runHeadless, ty
 import { defaultParams } from './params.ts'
 import { hashSeed } from './rng.ts'
 import { COACHING_SPECS, coachingSummary } from './coaching.ts'
+import { careerOf } from './careers.ts'
 import { NEUTRAL_FORBIDDEN, validateSpecs } from './events/spec.ts'
 import type { LifeConfig, LifeState } from './types.ts'
 
@@ -35,12 +36,18 @@ function strip(s: LifeState) {
 
 /** a life played on screen that says yes to every coaching offer and every step up, every other question as おまかせ */
 const YES = /二軍のコーチとして球団に残る|母校の高校の監督になる|一軍のコーチになる|ヘッドコーチを引き受ける|監督を引き受ける|強豪校の監督になる|大学の野球部の監督になる/
+/** the company's events met while he coached (a promotion to 係長, a project with clients: feedback 2026-11-16) */
+const officeWhileCoaching: string[] = []
 function playYes(i: number): LifeState {
   const s = createLife(config(i))
   const screen: Sim = { params: defaultParams() }
   for (let g = 0; g < 130 && s.alive; g++) {
-    let d = planYear(s, screen).decision?.decision
+    const coaching = careerOf(s) === 'coach'
+    const plan = planYear(s, screen)
+    if (coaching) for (const e of plan.events) if (e.entry.eventId === 'work.project') officeWhileCoaching.push(`life ${i} age ${s.age}: ${e.entry.text}`)
+    let d = plan.decision?.decision
     while (d && s.alive) {
+      if (coaching && d.id === 'work.promotion') officeWhileCoaching.push(`life ${i} age ${s.age}: ${d.title}`)
       const k = d.choices.findIndex((c) => YES.test(c.label))
       d = resolveDecision(s, k >= 0 ? k : d.autoIndex, screen).followUp?.decision
     }
@@ -104,5 +111,7 @@ describe('the coach’s road after playing', () => {
     }
     expect(coaches).toBeGreaterThan(3)
     expect(managed).toBeGreaterThan(3)
+    // a coach climbs his own ladder (first-team coach, head coach, manager), not a company's
+    expect(officeWhileCoaching).toEqual([])
   })
 })

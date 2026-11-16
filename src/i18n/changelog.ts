@@ -5,6 +5,8 @@ import { moneyTokens } from './currency.ts'
 // in Japanese has no translation until one is written here (the tests list it), and is shown in Japanese until then.
 
 const EN: Record<string, string> = {
+  'コーチや監督などの仕事をしているのに、会社員の昇進（主任・係長など）や、取引先とのやりとりの出来事が出る不具合を直しました。':
+    'Fixed: a coach, a manager and the like met a company employee’s promotions (to section chief and so on) and dealings with clients.',
   'タイトルを、リーグで規定に届いた選手の中で1位になれたかで決めるように変えました。競う人数は実際のNPBの規定到達者の数（打者は平均26人、投手は11人）で、相手の成績はゲームの選手のものです。ほとんど取れなかった本塁打王・盗塁王・最優秀防御率も取れるようになり、☆10の選手が取るタイトルの数はおよそ2倍になりました。':
     'A title now goes to the player who comes first among the league’s qualified players. How many compete is the real number of NPB’s qualified players (26 batters and 11 pitchers on average); the rivals’ stats are those of the game’s players. The home run, stolen base and ERA titles, almost never won before, can now be won, and a ★10 player wins about twice as many titles.',
   '1軍でプレーした選手が引退するとき、二軍のコーチとして球団に残るか、母校の高校の監督になるかを選べるようにしました。':
